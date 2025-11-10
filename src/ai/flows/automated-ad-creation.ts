@@ -5,9 +5,9 @@
  *
  * The flow takes user input for ad details and generates ad campaigns with realistic performance simulations.
  * It exports:
- * - `createAutomatedAdCampaign`: The function to trigger the ad creation flow.
- * - `AutomatedAdCampaignInput`: The input type for the ad creation flow.
- * - `AutomatedAdCampaignOutput`: The output type for the ad creation flow.
+ * - createAutomatedAdCampaign: The function to trigger the ad creation flow.
+ * - AutomatedAdCampaignInput: The input type for the ad creation flow.
+ * - AutomatedAdCampaignOutput: The output type for the ad creation flow.
  */
 
 import {ai} from '@/ai/genkit';

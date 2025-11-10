@@ -1,4 +1,3 @@
-// src/ai/flows/automated-marketing.ts
 'use server';
 /**
  * @fileOverview A flow that automates lead generation, client communication, payment process management, and campaign monitoring.
@@ -26,6 +25,7 @@ const AutomatedMarketingOutputSchema = z.object({
     .describe('A detailed strategy for generating leads, including specific channels and tactics.'),
   clientCommunicationPlan: z
     .string()
+
     .describe(
       'A plan for communicating with clients at all stages, including initial contact, follow-up, and ongoing engagement.'
     ),
