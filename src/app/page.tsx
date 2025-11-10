@@ -70,10 +70,10 @@ export default function Home() {
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter mb-4 font-headline">
-              The Future of Advertising is Automated
+              Start Google ads without an ad account
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground mb-8">
-              Hagaaty is your all-in-one platform for creating, managing, and optimizing ad campaigns with the power of artificial intelligence.
+              Ad activation within 10 minutes by AI
             </p>
             <Button size="lg" asChild>
               <Link href="/signup">Claim Your $4 Welcome Bonus</Link>
