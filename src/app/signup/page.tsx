@@ -22,7 +22,7 @@ export default function SignupPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center items-center gap-2 mb-2">
             <Megaphone className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold tracking-tighter">AdWise AI</h1>
+            <h1 className="text-2xl font-bold tracking-tighter">Hagaaty</h1>
           </div>
           <CardTitle>Create an Account</CardTitle>
           <CardDescription>Get started with a $4 welcome bonus!</CardDescription>

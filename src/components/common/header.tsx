@@ -18,7 +18,7 @@ export function Header() {
       <SidebarTrigger className="sm:hidden" />
       <div className="flex items-center gap-2 font-semibold">
         <Megaphone className="h-6 w-6 text-primary" />
-        <span className="text-lg font-bold tracking-tight hidden sm:inline-block">AdWise AI</span>
+        <span className="text-lg font-bold tracking-tight hidden sm:inline-block">Hagaaty</span>
       </div>
       <div className="ml-auto flex items-center gap-4">
         <DropdownMenu>

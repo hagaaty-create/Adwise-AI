@@ -54,7 +54,7 @@ export default function Home() {
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Megaphone className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tighter">AdWise AI</h1>
+          <h1 className="text-2xl font-bold tracking-tighter">Hagaaty</h1>
         </div>
         <nav className="flex items-center gap-4">
           <Button variant="ghost" asChild>
@@ -73,7 +73,7 @@ export default function Home() {
               The Future of Advertising is Automated
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground mb-8">
-              AdWise AI is your all-in-one platform for creating, managing, and optimizing ad campaigns with the power of artificial intelligence.
+              Hagaaty is your all-in-one platform for creating, managing, and optimizing ad campaigns with the power of artificial intelligence.
             </p>
             <Button size="lg" asChild>
               <Link href="/signup">Claim Your $4 Welcome Bonus</Link>
@@ -121,7 +121,7 @@ export default function Home() {
       </main>
 
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} AdWise AI. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Hagaaty. All rights reserved.</p>
       </footer>
     </div>
   );
