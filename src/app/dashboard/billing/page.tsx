@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Wallet, Gift, Copy } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
 const transactions = [
@@ -18,13 +18,11 @@ const transactions = [
 ];
 
 export default function BillingPage() {
-  const { toast } = useToast();
   const referralLink = "https://adwise.ai/ref/user123";
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
-    toast({
-      title: "Copied to clipboard!",
+    toast.success("Copied to clipboard!", {
       description: "You can now share your referral link.",
     });
   };

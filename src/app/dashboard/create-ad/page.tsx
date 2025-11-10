@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createAutomatedAdCampaign, AutomatedAdCampaignOutput } from '@/ai/flows/automated-ad-creation';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,15 +61,21 @@ export default function CreateAdPage() {
   async function onSubmit(values: FormData) {
     setIsLoading(true);
     setResults(null);
+    toast.info('Generating your ad campaigns...', {
+        description: 'This may take a moment. Please wait.',
+    });
     try {
       const result = await createAutomatedAdCampaign({
         ...values,
         platforms: values.platforms as Array<'Google' | 'TikTok' | 'Facebook' | 'Snapchat'>
       });
       setResults(result);
+      toast.success('Campaigns generated successfully!');
     } catch (error) {
       console.error('Failed to create ad campaign:', error);
-      // Here you would use a toast notification to show the error
+      toast.error('Failed to create ad campaign', {
+        description: 'An unexpected error occurred. Please try again later.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -201,7 +208,7 @@ export default function CreateAdPage() {
         </CardContent>
       </Card>
       
-      {isLoading && (
+      {isLoading && !results && (
         <div className="text-center p-8">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
             <p className="mt-2 text-muted-foreground">AI is crafting your campaigns...</p>

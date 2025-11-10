@@ -6,7 +6,8 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, X, Loader2, Send } from 'lucide-react';
-import { assistUser, AssistUserInput } from '@/ai/flows/intelligent-assistant';
+import { assistUser } from '@/ai/flows/intelligent-assistant';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 type Message = {
@@ -51,6 +52,9 @@ export function ChatAssistant() {
       console.error('AI assistant error:', error);
       const errorMessage: Message = { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' };
       setMessages((prev) => [...prev, errorMessage]);
+      toast.error('Assistant Error', {
+        description: 'Sorry, I encountered an error. Please try again.',
+      });
     } finally {
       setIsLoading(false);
     }

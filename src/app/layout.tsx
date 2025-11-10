@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster as SonnerToaster } from 'sonner';
 import { ChatAssistant } from '@/components/common/chat-assistant';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -21,7 +21,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-body antialiased h-full`}>
         {children}
         <ChatAssistant />
-        <Toaster />
+        <SonnerToaster richColors />
       </body>
     </html>
   );
