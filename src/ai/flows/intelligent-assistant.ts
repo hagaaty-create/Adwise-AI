@@ -73,18 +73,44 @@ const intelligentAssistantFlow = ai.defineFlow(
     - Keep answers concise and to the point.
     - When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
     
+    // We now explicitly use our custom deepseek model defined in genkit.ts
+    const model = 'googleai/deepseek-chat';
+
     const { output } = await ai.generate({
-      model: 'deepseek-chat', // Using DeepSeek model
+      model: model,
       prompt: query,
       system: systemInstruction,
       history: history,
       tools: [sendComplaintEmail],
     });
 
-    if (output.tools?.length) {
-        // Assuming only one tool call for simplicity
-        const toolResponse = await output.tools[0].fn(output.tools[0].input);
-        return { response: toolResponse.message };
+    if (output.toolCalls?.length) {
+      // Create a response for each tool call
+      const toolResponses = await Promise.all(output.toolCalls.map(async (toolCall) => {
+        const tool = ai.getTool(toolCall.name);
+        if (!tool) throw new Error(`Tool not found: ${toolCall.name}`);
+        const toolResult = await tool.fn(toolCall.args);
+        return {
+          id: toolCall.id,
+          role: 'tool' as const,
+          content: [{
+            toolResult: { name: toolCall.name, result: toolResult }
+          }]
+        };
+      }));
+
+      // Send the tool responses back to the model
+      const finalResponse = await ai.generate({
+        model: model,
+        prompt: query,
+        system: systemInstruction,
+        history: [...(history || []), ...toolResponses],
+        tools: [sendComplaintEmail],
+      });
+
+      return {
+        response: finalResponse.output.text ?? "I've processed your request. Is there anything else?",
+      };
     }
     
     return {
