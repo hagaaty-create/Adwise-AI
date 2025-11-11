@@ -74,7 +74,7 @@ const intelligentAssistantFlow = ai.defineFlow(
     - When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
     
     const { output } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash',
+      model: 'deepseek-chat',
       prompt: query,
       system: systemInstruction,
       history: history,
