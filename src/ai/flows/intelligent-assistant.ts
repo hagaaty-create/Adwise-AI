@@ -58,9 +58,9 @@ const intelligentAssistantFlow = ai.defineFlow(
     inputSchema: AssistUserInputSchema,
     outputSchema: AssistUserOutputSchema,
   },
-  async (input) => {
+  async ({ query, history }) => {
 
-    const systemPrompt = `You are "Hagaaty Assistant", a friendly and helpful AI assistant for the Hagaaty website. Your primary goal is to assist all users, especially those who are visually impaired, in navigating and understanding the website.
+    const systemInstruction = `You are "Hagaaty Assistant", a friendly and helpful AI assistant for the Hagaaty website. Your primary goal is to assist all users, especially those who are visually impaired, in navigating and understanding the website.
 
     **Your Capabilities:**
     1.  **Introduce the Website:** Explain what Hagaaty is. It's an all-in-one AI-powered advertising platform that lets users start Google ads without an ad account, with activation in about 10 minutes. It offers automated ad creation, smart ad review, automated site management with SEO, automated marketing funnels, integrated financials, and special subscriptions for agencies.
@@ -71,20 +71,20 @@ const intelligentAssistantFlow = ai.defineFlow(
     **Interaction Style:**
     - Be polite, patient, and clear in your responses.
     - Keep answers concise and to the point.
-    - When asked about your identity, introduce yourself as the "Hagaaty Assistant".
-
-    The user's query is: "${input.query}"`;
+    - When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
     
     const { output } = await ai.generate({
-      prompt: systemPrompt,
-      history: input.history,
-      tools: [sendComplaintEmail],
       model: 'googleai/gemini-2.5-flash',
+      prompt: query,
+      system: systemInstruction,
+      history: history,
+      tools: [sendComplaintEmail],
     });
 
     if (output.tools?.length) {
-      const toolResponse = await output.tools[0].fn(output.tools[0].input);
-      return { response: toolResponse.message };
+        // Assuming only one tool call for simplicity
+        const toolResponse = await output.tools[0].fn(output.tools[0].input);
+        return { response: toolResponse.message };
     }
     
     return {
