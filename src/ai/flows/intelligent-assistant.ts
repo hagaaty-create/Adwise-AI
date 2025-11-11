@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An intelligent assistant for website accessibility and user support.
+ * @fileOverview An intelligent assistant for website accessibility and user support, powered by DeepSeek.
  *
  * - assistUser - A function that handles user queries.
  * - AssistUserInput - The input type for the assistUser function.
@@ -9,6 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import fetch from 'node-fetch';
 
 const ComplaintSchema = z.object({
   complaintDetails: z.string().describe("The user's complaint or feedback."),
@@ -52,6 +53,20 @@ export async function assistUser(input: AssistUserInput): Promise<AssistUserOutp
   return intelligentAssistantFlow(input);
 }
 
+// System instruction for the assistant
+const systemInstruction = `You are "Hagaaty Assistant", a friendly and helpful AI assistant for the Hagaaty website. Your primary goal is to assist all users, especially those who are visually impaired, in navigating and understanding the website.
+
+**Your Capabilities:**
+1.  **Introduce the Website:** Explain what Hagaaty is. It's an all-in-one AI-powered advertising platform that lets users start Google ads, with activation in about 10 minutes. It offers automated ad creation, smart ad review, automated site management with SEO, automated marketing funnels, integrated financials, and special subscriptions for agencies.
+2.  **Guide Users:** Help users find pages like "Create Ad", "Billing", or "Agency Subscription".
+3.  **Answer Questions:** Answer questions about the features of the site.
+4.  **Handle Complaints:** If a user expresses frustration, wants to complain, or gives negative feedback, use the \`sendComplaintEmail\` tool to report the issue. Inform the user that their complaint has been sent.
+
+**Interaction Style:**
+- Be polite, patient, and clear in your responses.
+- Keep answers concise and to the point.
+- When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
+
 const intelligentAssistantFlow = ai.defineFlow(
   {
     name: 'intelligentAssistantFlow',
@@ -59,61 +74,81 @@ const intelligentAssistantFlow = ai.defineFlow(
     outputSchema: AssistUserOutputSchema,
   },
   async ({ query, history }) => {
+
+    const userMessage = { role: 'user', content: query };
     
-    const model = 'googleai/gemini-1.5-flash-latest';
-
-    const systemInstruction = `You are "Hagaaty Assistant", a friendly and helpful AI assistant for the Hagaaty website. Your primary goal is to assist all users, especially those who are visually impaired, in navigating and understanding the website.
-
-    **Your Capabilities:**
-    1.  **Introduce the Website:** Explain what Hagaaty is. It's an all-in-one AI-powered advertising platform that lets users start Google ads, with activation in about 10 minutes. It offers automated ad creation, smart ad review, automated site management with SEO, automated marketing funnels, integrated financials, and special subscriptions for agencies.
-    2.  **Guide Users:** Help users find pages like "Create Ad", "Billing", or "Agency Subscription".
-    3.  **Answer Questions:** Answer questions about the features of the site.
-    4.  **Handle Complaints:** If a user expresses frustration, wants to complain, or gives negative feedback, use the \`sendComplaintEmail\` tool to report the issue. Inform the user that their complaint has been sent.
-
-    **Interaction Style:**
-    - Be polite, patient, and clear in your responses.
-    - Keep answers concise and to the point.
-    - When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
-
-    const { output } = await ai.generate({
-      model: model,
-      prompt: query,
-      history: history,
-      tools: [sendComplaintEmail],
-      system: systemInstruction,
-    });
+    // Combine system prompt, history, and the new user query
+    const messages = [
+        { role: 'system', content: systemInstruction },
+        ...(history || []).map(h => ({ role: h.role, content: h.content[0].text })),
+        userMessage
+    ];
     
-    if (output.toolCalls?.length) {
-      // Create a response for each tool call
-      const toolResponses = await Promise.all(output.toolCalls.map(async (toolCall) => {
-        const tool = ai.getTool(toolCall.name);
-        if (!tool) throw new Error(`Tool not found: ${toolCall.name}`);
-        const toolResult = await tool.fn(toolCall.args);
-        return {
-          id: toolCall.id,
-          role: 'tool' as const,
-          content: [{
-            toolResult: { name: toolCall.name, result: toolResult }
-          }]
-        };
-      }));
-
-      // Send the tool responses back to the model
-      const finalResponse = await ai.generate({
-        model: model,
+    // First, let's try with Gemini to decide if a tool should be used
+    const toolCheckResponse = await ai.generate({
+        model: 'googleai/gemini-1.5-flash-latest',
         prompt: query,
-        system: systemInstruction,
-        history: [...(history || []), ...toolResponses],
+        history: history,
         tools: [sendComplaintEmail],
-      });
+        system: systemInstruction,
+    });
 
+    // If Gemini decides to call a tool, handle it.
+    if (toolCheckResponse.output.toolCalls?.length) {
+      const toolCall = toolCheckResponse.output.toolCalls[0];
+      const tool = ai.getTool(toolCall.name);
+      if (!tool) throw new Error(`Tool not found: ${toolCall.name}`);
+      const toolResult = await tool.fn(toolCall.args);
+      
+      // Return the tool's response directly to the user
       return {
-        response: finalResponse.output.text ?? "I've processed your request. Is there anything else?",
+          response: toolResult.message,
       };
     }
-    
-    return {
-      response: output.text ?? "I'm sorry, I couldn't process that. Could you try rephrasing?",
-    };
+
+    // If no tool is called, proceed to get a regular chat response from DeepSeek
+    try {
+      const response = await fetch("https://api.deepseek.com/chat/completions", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: messages,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("DeepSeek API Error:", response.status, errorBody);
+        throw new Error(`DeepSeek API request failed with status ${response.status}`);
+      }
+
+      const result = await response.json() as any;
+
+      if (result.choices && result.choices.length > 0) {
+        return {
+          response: result.choices[0].message.content,
+        };
+      } else {
+        return {
+          response: "I'm sorry, I couldn't get a response. Please try again.",
+        };
+      }
+    } catch (error) {
+        console.error("Error calling DeepSeek API:", error);
+        // Fallback to Gemini if DeepSeek fails
+        const fallbackResponse = await ai.generate({
+            model: 'googleai/gemini-1.5-flash-latest',
+            prompt: query,
+            history: history,
+            system: systemInstruction,
+        });
+        return {
+            response: fallbackResponse.output.text ?? "I'm having trouble connecting right now. Please try again later.",
+        };
+    }
   }
 );
