@@ -12,16 +12,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Wand2 } from 'lucide-react';
 
 const formSchema = z.object({
   adName: z.string().min(3, { message: 'Ad name must be at least 3 characters.' }),
   productDescription: z.string().min(20, { message: 'Product description must be at least 20 characters.' }),
   targetAudience: z.string().min(10, { message: 'Target audience must be at least 10 characters.' }),
-  platforms: z.array(z.string()).refine((value) => value.includes('Google'), {
-    message: 'You have to select at least one platform.',
-  }),
   budget: z.coerce.number().min(1, { message: 'Budget must be at least $1.' }),
   campaignDurationDays: z.coerce.number().int().min(1, { message: 'Duration must be at least 1 day.' }),
 });
@@ -42,7 +38,6 @@ export default function CreateAdPage() {
       adName: '',
       productDescription: '',
       targetAudience: '',
-      platforms: ['Google'],
       budget: 100,
       campaignDurationDays: 7,
     },
@@ -127,11 +122,11 @@ export default function CreateAdPage() {
                   <FormItem>
                     <div className="mb-4">
                       <FormLabel className="text-base">Platform</FormLabel>
-                      <FormDescription>Your ads will run on Google.</FormDescription>
+                      <FormDescription>Your ads will run exclusively on Google.</FormDescription>
                     </div>
-                    <div className="flex flex-row items-start space-x-3 space-y-0">
-                        <Checkbox checked={true} readOnly disabled />
-                        <FormLabel className="font-normal">Google</FormLabel>
+                     <div className="flex items-center space-x-2 rounded-md border border-input p-2 bg-muted">
+                        <div className="text-primary">{platformIcons['Google']}</div>
+                        <span className="font-medium">Google</span>
                     </div>
                   </FormItem>
 
