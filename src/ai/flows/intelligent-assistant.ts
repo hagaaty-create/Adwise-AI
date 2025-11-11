@@ -74,7 +74,7 @@ const intelligentAssistantFlow = ai.defineFlow(
     - When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
     
     const { output } = await ai.generate({
-      model: 'deepseek-chat',
+      model: 'deepseek-chat', // Using DeepSeek model
       prompt: query,
       system: systemInstruction,
       history: history,
