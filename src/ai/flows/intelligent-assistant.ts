@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An intelligent assistant for website accessibility and user support, powered by DeepSeek.
+ * @fileOverview An intelligent assistant for website accessibility and user support.
  *
  * - assistUser - A function that handles user queries.
  * - AssistUserInput - The input type for the assistUser function.
