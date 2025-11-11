@@ -8,7 +8,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const ComplaintSchema = z.object({
   complaintDetails: z.string().describe("The user's complaint or feedback."),
@@ -73,8 +73,7 @@ const intelligentAssistantFlow = ai.defineFlow(
     - Keep answers concise and to the point.
     - When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
     
-    // We now explicitly use our custom deepseek model defined in genkit.ts
-    const model = 'googleai/deepseek-chat';
+    const model = 'googleai/gemini-1.5-flash-latest';
 
     const { output } = await ai.generate({
       model: model,
