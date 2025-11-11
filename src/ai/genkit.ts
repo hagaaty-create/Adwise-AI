@@ -1,5 +1,4 @@
 'use server';
-
 /**
  * @fileOverview This file configures the Genkit AI instance and sets up a custom model for DeepSeek.
  */
@@ -7,7 +6,7 @@
 import {genkit, Message} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
 
-const deepseekPlugin = {
+const deepseekPlugin = () => ({
   name: 'genkit-plugin-deepseek-custom',
   models: [
     {
@@ -96,12 +95,12 @@ const deepseekPlugin = {
       },
     },
   ],
-};
+});
 
 
 export const ai = genkit({
   plugins: [
     googleAI(),
-    deepseekPlugin,
+    deepseekPlugin(),
   ],
 });
