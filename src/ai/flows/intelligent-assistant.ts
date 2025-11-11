@@ -9,7 +9,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import fetch from 'node-fetch';
 
 const ComplaintSchema = z.object({
   complaintDetails: z.string().describe("The user's complaint or feedback."),
@@ -74,81 +73,27 @@ const intelligentAssistantFlow = ai.defineFlow(
     outputSchema: AssistUserOutputSchema,
   },
   async ({ query, history }) => {
-
-    const userMessage = { role: 'user', content: query };
-    
-    // Combine system prompt, history, and the new user query
-    const messages = [
-        { role: 'system', content: systemInstruction },
-        ...(history || []).map(h => ({ role: h.role, content: h.content[0].text })),
-        userMessage
-    ];
-    
-    // First, let's try with Gemini to decide if a tool should be used
-    const toolCheckResponse = await ai.generate({
+    const response = await ai.generate({
         model: 'googleai/gemini-1.5-flash-latest',
         prompt: query,
         history: history,
         tools: [sendComplaintEmail],
         system: systemInstruction,
     });
-
-    // If Gemini decides to call a tool, handle it.
-    if (toolCheckResponse.output.toolCalls?.length) {
-      const toolCall = toolCheckResponse.output.toolCalls[0];
-      const tool = ai.getTool(toolCall.name);
-      if (!tool) throw new Error(`Tool not found: ${toolCall.name}`);
-      const toolResult = await tool.fn(toolCall.args);
-      
-      // Return the tool's response directly to the user
-      return {
-          response: toolResult.message,
-      };
-    }
-
-    // If no tool is called, proceed to get a regular chat response from DeepSeek
-    try {
-      const response = await fetch("https://api.deepseek.com/chat/completions", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: messages,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error("DeepSeek API Error:", response.status, errorBody);
-        throw new Error(`DeepSeek API request failed with status ${response.status}`);
-      }
-
-      const result = await response.json() as any;
-
-      if (result.choices && result.choices.length > 0) {
+    
+    const toolCalls = response.output.toolCalls;
+    if (toolCalls?.length) {
+        const toolCall = toolCalls[0];
+        const tool = ai.getTool(toolCall.name);
+        if (!tool) throw new Error(`Tool not found: ${toolCall.name}`);
+        const toolResult = await tool.fn(toolCall.args);
         return {
-          response: result.choices[0].message.content,
-        };
-      } else {
-        return {
-          response: "I'm sorry, I couldn't get a response. Please try again.",
-        };
-      }
-    } catch (error) {
-        console.error("Error calling DeepSeek API:", error);
-        // Fallback to Gemini if DeepSeek fails
-        const fallbackResponse = await ai.generate({
-            model: 'googleai/gemini-1.5-flash-latest',
-            prompt: query,
-            history: history,
-            system: systemInstruction,
-        });
-        return {
-            response: fallbackResponse.output.text ?? "I'm having trouble connecting right now. Please try again later.",
+            response: toolResult.message,
         };
     }
+
+    return {
+        response: response.output.text ?? "I'm sorry, I couldn't get a response. Please try again.",
+    };
   }
 );
