@@ -5,7 +5,7 @@ import { Check, Star, ShieldCheck, Globe, InfinityIcon } from "lucide-react";
 const agencyFeatures = [
     {
       icon: <InfinityIcon className="h-5 w-5 text-primary" />,
-      text: "Unlimited ad accounts",
+      text: "Unlimited Google ad accounts",
     },
     {
       icon: <ShieldCheck className="h-5 w-5 text-primary" />,
@@ -17,7 +17,7 @@ const agencyFeatures = [
     },
     {
       icon: <Check className="h-5 w-5 text-primary" />,
-      text: "Support for Google, TikTok, Facebook, and Snapchat",
+      text: "Support for Google Ads platform",
     },
     {
       icon: <Star className="h-5 w-5 text-primary" />,
@@ -35,7 +35,7 @@ export default function SubscriptionPage() {
                 </div>
                 <CardTitle className="text-3xl font-bold">Agency Plan</CardTitle>
                 <CardDescription className="text-lg text-muted-foreground">
-                    Unlock powerful features for your agency and scale your advertising efforts.
+                    Unlock powerful features for your agency and scale your Google advertising efforts.
                 </CardDescription>
                 <div className="pt-4">
                     <span className="text-5xl font-extrabold">$50</span>
