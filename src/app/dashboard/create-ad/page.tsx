@@ -15,15 +15,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Wand2 } from 'lucide-react';
 
-const platforms = [
-  { id: 'Google', label: 'Google' },
-] as const;
-
 const formSchema = z.object({
   adName: z.string().min(3, { message: 'Ad name must be at least 3 characters.' }),
   productDescription: z.string().min(20, { message: 'Product description must be at least 20 characters.' }),
   targetAudience: z.string().min(10, { message: 'Target audience must be at least 10 characters.' }),
-  platforms: z.array(z.string()).refine((value) => value.some((item) => item), {
+  platforms: z.array(z.string()).refine((value) => value.includes('Google'), {
     message: 'You have to select at least one platform.',
   }),
   budget: z.coerce.number().min(1, { message: 'Budget must be at least $1.' }),
@@ -128,40 +124,17 @@ export default function CreateAdPage() {
                   />
                 </div>
                 <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="platforms"
-                    render={() => (
-                      <FormItem>
-                        <div className="mb-4">
-                          <FormLabel className="text-base">Platform</FormLabel>
-                          <FormDescription>Your ads will run on Google.</FormDescription>
-                        </div>
-                        {platforms.map((item) => (
-                          <FormField
-                            key={item.id}
-                            control={form.control}
-                            name="platforms"
-                            render={({ field }) => {
-                              return (
-                                <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(item.id)}
-                                      readOnly
-                                      className="cursor-not-allowed"
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">{item.label}</FormLabel>
-                                </FormItem>
-                              );
-                            }}
-                          />
-                        ))}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel className="text-base">Platform</FormLabel>
+                      <FormDescription>Your ads will run on Google.</FormDescription>
+                    </div>
+                    <div className="flex flex-row items-start space-x-3 space-y-0">
+                        <Checkbox checked={true} readOnly disabled />
+                        <FormLabel className="font-normal">Google</FormLabel>
+                    </div>
+                  </FormItem>
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
