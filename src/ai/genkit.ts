@@ -1,4 +1,3 @@
-'use server';
 /**
  * @fileOverview This file configures the Genkit AI instance and sets up a custom model for DeepSeek.
  */
@@ -21,7 +20,7 @@ const deepseekPlugin = () => ({
       },
       version: 'deepseek-chat',
       family: 'deepseek',
-      async run(request, streamingCallback) {
+      async run(request: any, streamingCallback: any) {
         const options = {
           ...request.config,
           stream: !!streamingCallback,
@@ -33,7 +32,7 @@ const deepseekPlugin = () => ({
           return role;
         };
 
-        const messages = request.messages.map(msg => ({
+        const messages = request.messages.map((msg: Message) => ({
           role: toDeepSeekRole(msg.role),
           content: msg.content.map(p => {
             if (p.text) return p.text;
@@ -53,7 +52,7 @@ const deepseekPlugin = () => ({
           body: JSON.stringify({
             model: 'deepseek-chat',
             messages: messages,
-            tools: request.tools?.map(t => ({type: 'function', function: t.jsonSchema})),
+            tools: request.tools?.map((t: any) => ({type: 'function', function: t.jsonSchema})),
             ...options,
           }),
         });
