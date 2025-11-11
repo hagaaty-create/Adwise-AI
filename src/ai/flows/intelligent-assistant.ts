@@ -59,6 +59,8 @@ const intelligentAssistantFlow = ai.defineFlow(
     outputSchema: AssistUserOutputSchema,
   },
   async ({ query, history }) => {
+    
+    const model = 'googleai/gemini-1.5-flash-latest';
 
     const systemInstruction = `You are "Hagaaty Assistant", a friendly and helpful AI assistant for the Hagaaty website. Your primary goal is to assist all users, especially those who are visually impaired, in navigating and understanding the website.
 
@@ -72,17 +74,15 @@ const intelligentAssistantFlow = ai.defineFlow(
     - Be polite, patient, and clear in your responses.
     - Keep answers concise and to the point.
     - When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
-    
-    const model = 'googleai/gemini-1.5-flash-latest';
 
     const { output } = await ai.generate({
       model: model,
       prompt: query,
-      system: systemInstruction,
       history: history,
       tools: [sendComplaintEmail],
+      system: systemInstruction,
     });
-
+    
     if (output.toolCalls?.length) {
       // Create a response for each tool call
       const toolResponses = await Promise.all(output.toolCalls.map(async (toolCall) => {
