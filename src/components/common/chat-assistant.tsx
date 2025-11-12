@@ -33,13 +33,14 @@ export function ChatAssistant() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: input };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
     setInput('');
     setIsLoading(true);
 
     try {
-      const result = await assistUser({ query: input, history: newMessages });
+      // Pass the existing messages history, not the new one with the user's latest query
+      const result = await assistUser({ query: input, history: messages });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
       setMessages((prev) => [...prev, assistantMessage]);
