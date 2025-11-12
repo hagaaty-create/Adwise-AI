@@ -81,7 +81,7 @@ const intelligentAssistantFlow = ai.defineFlow(
       content: [{ text: msg.content }]
     }));
 
-    const response = await ai.generate({
+    let response = await ai.generate({
         prompt: query,
         history: formattedHistory,
         tools: [sendComplaintEmail],
@@ -89,19 +89,15 @@ const intelligentAssistantFlow = ai.defineFlow(
         model: 'googleai/gemini-1.5-flash',
     });
     
-    const toolRequest = response.toolRequest;
-    if (toolRequest) {
+    while (response.isToolRequest()) {
+      const toolRequest = response.toolRequest!;
       const tool = ai.getTool(toolRequest.name);
       if (!tool) throw new Error(`Tool not found: ${toolRequest.name}`);
       const toolResult = await tool.fn(toolRequest.input);
-      
-      const secondResponse = await response.continue({
+
+      response = await response.continue({
         toolResult: toolResult,
       });
-
-      return {
-        response: secondResponse.text ?? "I've processed your request. Is there anything else?",
-      }
     }
 
     return {
