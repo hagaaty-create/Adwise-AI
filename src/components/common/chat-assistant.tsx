@@ -43,9 +43,10 @@ export function ChatAssistant() {
     setIsLoading(true);
 
     try {
+      // Pass the new query and the previous history separately
       const result = await assistUser({
         query: trimmedInput,
-        history: history, // Send the old history
+        history: history,
       });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
@@ -65,28 +66,26 @@ export function ChatAssistant() {
   
   useEffect(() => {
     if(isOpen && messages.length === 0) {
-      setMessages([{role: 'assistant', content: "Hello! I'm the Hagaaty Assistant. How can I help you today? You can ask me about the website's features or how to navigate it."}])
+      setIsLoading(true);
+      setTimeout(() => {
+        setMessages([{role: 'assistant', content: "Hello! I'm the Hagaaty Assistant. How can I help you today? You can ask me about the website's features or how to navigate it."}]);
+        setIsLoading(false);
+      }, 500);
     }
   }, [isOpen, messages.length]);
 
   return (
     <>
-      {!isOpen && (
-        <div className="fixed bottom-4 right-4 z-50">
-          <Button onClick={() => setIsOpen(true)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
-            <MessageCircle className="h-6 w-6" />
-          </Button>
-        </div>
-      )}
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button onClick={() => setIsOpen(!isOpen)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
+          {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        </Button>
+      </div>
 
       {isOpen && (
-        <Card className="fixed bottom-4 right-4 z-50 w-full max-w-sm h-[60vh] flex flex-col shadow-2xl">
+        <Card className="fixed bottom-20 right-4 z-50 w-full max-w-sm h-[60vh] flex flex-col shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
             <h3 className="font-semibold">Hagaaty Assistant</h3>
-            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-6 w-6">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close chat</span>
-            </Button>
           </CardHeader>
           <CardContent className="flex-grow p-0">
             <ScrollArea className="h-full" ref={scrollAreaRef}>

@@ -64,13 +64,15 @@ const intelligentAssistantFlow = ai.defineFlow(
         content: [{ text: msg.content }]
       }));
 
-    const response = await assistantPrompt({
+    const result = await assistantPrompt({
         prompt: query,
         history: formattedHistory,
     });
+
+    const response = result.text;
     
     return {
-        response: response.text ?? "I'm sorry, I couldn't get a response. Please try again.",
+        response: response ?? "I'm sorry, I couldn't get a response. Please try again.",
     };
   }
 );
