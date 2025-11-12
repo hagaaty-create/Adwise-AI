@@ -67,6 +67,14 @@ const systemInstruction = `You are "Hagaaty Assistant", a friendly and helpful A
 - Keep answers concise and to the point.
 - When asked about your identity, introduce yourself as the "Hagaaty Assistant".`;
 
+const assistantPrompt = ai.definePrompt({
+    name: 'hagaatyAssistantPrompt',
+    model: 'googleai/gemini-pro',
+    system: systemInstruction,
+    tools: [sendComplaintEmail],
+});
+
+
 const intelligentAssistantFlow = ai.defineFlow(
   {
     name: 'intelligentAssistantFlow',
@@ -81,12 +89,9 @@ const intelligentAssistantFlow = ai.defineFlow(
       content: [{ text: msg.content }]
     }));
 
-    let response = await ai.generate({
-        model: 'googleai/gemini-pro',
+    let response = await assistantPrompt({
         prompt: query,
         history: formattedHistory,
-        tools: [sendComplaintEmail],
-        system: systemInstruction,
     });
     
     while (response.isToolRequest()) {
