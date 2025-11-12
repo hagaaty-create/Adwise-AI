@@ -41,12 +41,10 @@ export function ChatAssistant() {
     setIsLoading(true);
 
     try {
-      // Filter the history on the client-side to ensure no invalid data is sent.
-      const cleanHistory = newMessages.filter(msg => msg && msg.content);
-      
+      // The history is already in the correct format, no need to filter.
       const result = await assistUser({
         query: trimmedInput,
-        history: cleanHistory,
+        history: newMessages,
       });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
