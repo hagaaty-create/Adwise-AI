@@ -33,17 +33,13 @@ export function ChatAssistant() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
     try {
-      const chatHistory = messages.map(msg => ({
-        role: msg.role,
-        content: [{ text: msg.content }]
-      }));
-
-      const result = await assistUser({ query: input, history: chatHistory });
+      const result = await assistUser({ query: input, history: newMessages });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
       setMessages((prev) => [...prev, assistantMessage]);

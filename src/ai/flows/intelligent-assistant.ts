@@ -40,7 +40,10 @@ const sendComplaintEmail = ai.defineTool(
 
 const AssistUserInputSchema = z.object({
   query: z.string().describe('The user query.'),
-  history: z.array(z.any()).optional().describe('The chat history.'),
+  history: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string(),
+  })).optional().describe('The chat history.'),
 });
 export type AssistUserInput = z.infer<typeof AssistUserInputSchema>;
 
@@ -84,7 +87,9 @@ const intelligentAssistantFlow = ai.defineFlow(
   async ({ query, history }) => {
     
     // Convert the chat history from the client to the format Genkit expects.
-    const formattedHistory: { role: 'user' | 'model'; content: Part[] }[] = (history || []).filter(msg => msg && msg.content).map(msg => ({
+    const formattedHistory: { role: 'user' | 'model'; content: Part[] }[] = (history || [])
+    .filter(msg => msg && msg.content) // Filter out any empty messages
+    .map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       content: [{ text: msg.content }]
     }));
