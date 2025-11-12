@@ -78,7 +78,7 @@ const intelligentAssistantFlow = ai.defineFlow(
         history: history,
         tools: [sendComplaintEmail],
         system: systemInstruction,
-        model: 'googleai/gemini-1.5-flash-latest',
+        model: 'googleai/gemini-1.5-flash',
     });
     
     const toolCalls = response.output.toolCalls;
