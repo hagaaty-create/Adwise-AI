@@ -57,32 +57,32 @@ export default function CreateAdPage() {
   });
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: NodeJS.Timeout | undefined;
 
-    if (campaignStatus === 'active' && results) {
+    if (campaignStatus === 'active' && results && campaignData) {
         const campaignSummary = results.campaignSummaries[0];
         const totalSpend = campaignSummary.estimatedCost;
         const totalImpressions = campaignSummary.predictedReach;
         const totalClicks = campaignSummary.predictedConversions;
-        const durationSeconds = (campaignData?.campaignDurationDays || 1) * 24 * 60 * 60;
-
-        const spendPerSecond = totalSpend / durationSeconds;
-        const impressionsPerSecond = totalImpressions / durationSeconds;
-        const clicksPerSecond = totalClicks / durationSeconds;
+        // Total duration in seconds for the whole campaign
+        const totalDurationSeconds = campaignData.campaignDurationDays * 24 * 60 * 60;
+        
+        let elapsedSeconds = 0;
 
         interval = setInterval(() => {
-            setAdSpend(prev => {
-                const newSpend = prev + spendPerSecond * 2;
-                return Math.min(newSpend, totalSpend);
-            });
-            setImpressions(prev => {
-                 const newImpressions = prev + impressionsPerSecond * 2;
-                return Math.min(Math.floor(newImpressions), totalImpressions);
-            });
-            setClicks(prev => {
-                const newClicks = prev + clicksPerSecond * 2;
-                return Math.min(Math.floor(newClicks), totalClicks);
-            });
+            elapsedSeconds += 2; // Simulating time passing every 2 seconds
+            
+            const progress = Math.min(elapsedSeconds / totalDurationSeconds, 1);
+            
+            setAdSpend(totalSpend * progress);
+            setImpressions(Math.floor(totalImpressions * progress));
+            setClicks(Math.floor(totalClicks * progress));
+
+            if (progress >= 1) {
+                setCampaignStatus('finished');
+                toast.success('Your campaign has finished!');
+                clearInterval(interval);
+            }
         }, 2000); // Update every 2 seconds
     }
     
@@ -100,6 +100,9 @@ export default function CreateAdPage() {
     setResults(null);
     setCampaignStatus('pending');
     setCampaignData(values);
+    setAdSpend(0);
+    setImpressions(0);
+    setClicks(0);
 
     toast.info('AI is generating your Google Ad campaign...', {
         description: 'This may take a moment. Please wait.',
@@ -120,11 +123,11 @@ export default function CreateAdPage() {
       toast.success('Google Ad campaign generated successfully!');
       setCampaignStatus('review');
       
-      // Simulate review period
+      // Simulate review period (10 seconds)
       setTimeout(() => {
         setCampaignStatus('active');
-        toast.success('Your campaign is now active!');
-      }, 5000); // 5 seconds for review
+        toast.success('Your campaign is now active and running!');
+      }, 10000);
 
     } catch (error) {
       console.error('Failed to create ad campaign:', error);
@@ -140,9 +143,11 @@ export default function CreateAdPage() {
   const renderStatusBadge = () => {
     switch (campaignStatus) {
       case 'review':
-        return <Badge variant="secondary"><Clock className="mr-2 h-4 w-4" />In Review</Badge>;
+        return <Badge variant="secondary" className="animate-pulse"><Clock className="mr-2 h-4 w-4" />In Review (Approx. 10 min)</Badge>;
       case 'active':
         return <Badge className="bg-green-600 hover:bg-green-700"><CheckCircle className="mr-2 h-4 w-4" />Active</Badge>;
+      case 'finished':
+         return <Badge variant="outline">Finished</Badge>;
       default:
         return null;
     }
@@ -263,7 +268,7 @@ export default function CreateAdPage() {
               </div>
               <Button type="submit" disabled={isLoading || hasCampaign}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                {hasCampaign ? 'Campaign Running' : 'Activate Campaign with $4 Bonus'}
+                {hasCampaign ? 'Create a New Campaign' : 'Activate Campaign with $4 Bonus'}
               </Button>
             </form>
           </Form>
