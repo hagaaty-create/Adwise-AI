@@ -74,11 +74,11 @@ const intelligentAssistantFlow = ai.defineFlow(
   },
   async ({ query, history }) => {
     const response = await ai.generate({
-        model: 'googleai/gemini-1.5-flash-latest',
         prompt: query,
         history: history,
         tools: [sendComplaintEmail],
         system: systemInstruction,
+        model: 'googleai/gemini-1.5-flash-latest',
     });
     
     const toolCalls = response.output.toolCalls;
