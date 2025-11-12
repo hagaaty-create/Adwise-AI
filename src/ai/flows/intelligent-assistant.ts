@@ -89,19 +89,23 @@ const intelligentAssistantFlow = ai.defineFlow(
         model: 'googleai/gemini-1.5-flash',
     });
     
-    const toolCalls = response.output?.toolCalls;
-    if (toolCalls?.length) {
-        const toolCall = toolCalls[0];
-        const tool = ai.getTool(toolCall.name);
-        if (!tool) throw new Error(`Tool not found: ${toolCall.name}`);
-        const toolResult = await tool.fn(toolCall.args);
-        return {
-            response: toolResult.message,
-        };
+    const toolRequest = response.toolRequest;
+    if (toolRequest) {
+      const tool = ai.getTool(toolRequest.name);
+      if (!tool) throw new Error(`Tool not found: ${toolRequest.name}`);
+      const toolResult = await tool.fn(toolRequest.input);
+      
+      const secondResponse = await response.continue({
+        toolResult: toolResult,
+      });
+
+      return {
+        response: secondResponse.text ?? "I've processed your request. Is there anything else?",
+      }
     }
 
     return {
-        response: response.output?.text ?? "I'm sorry, I couldn't get a response. Please try again.",
+        response: response.text ?? "I'm sorry, I couldn't get a response. Please try again.",
     };
   }
 );
