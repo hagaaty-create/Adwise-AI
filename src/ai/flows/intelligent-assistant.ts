@@ -65,11 +65,10 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
     }
 
-    const formattedHistory = (history || [])
-      .filter(msg => msg && msg.content) // Ensure message and content exist
-      .map(msg => ({
-        role: msg.role === 'assistant' ? ('model' as const) : ('user' as const),
-        content: [{ text: msg.content }]
+    // Direct and safe mapping of history
+    const formattedHistory = (history || []).map(msg => ({
+        role: msg.role === 'assistant' ? 'model' as const : 'user' as const,
+        content: [{ text: msg.content || '' }]
       }));
 
     try {
@@ -80,9 +79,12 @@ const intelligentAssistantFlow = ai.defineFlow(
 
       const response = result.text;
       
-      return {
-          response: response ?? "I'm sorry, I couldn't get a response. Please try again.",
-      };
+      if (!response) {
+        return { response: "I'm sorry, I couldn't get a response. Please try again." };
+      }
+
+      return { response };
+
     } catch (e) {
       console.error('Error in intelligentAssistantFlow:', e);
       // It's better to throw a structured error
