@@ -8,6 +8,8 @@ export default function Dashboard() {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
+    // We need to wrap this in useEffect to avoid hydration errors
+    // because Math.random() produces different values on server and client.
     setData([
       { name: 'Jan', total: Math.floor(Math.random() * 5000) + 1000 },
       { name: 'Feb', total: Math.floor(Math.random() * 5000) + 1000 },

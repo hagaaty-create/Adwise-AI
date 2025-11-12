@@ -11,10 +11,10 @@ import { Badge } from '@/components/ui/badge';
 
 const transactions = [
   { id: 'trx-001', date: '2024-06-15', description: 'Welcome Bonus', amount: 4.00, type: 'credit' },
-  { id: 'trx-002', date: '2024-06-20', description: 'Binance Top-up', amount: 50.00, type: 'credit' },
-  { id: 'trx-003', date: '2024-06-21', description: 'Top-up Discount (20%)', amount: 10.00, type: 'credit' },
-  { id: 'trx-004', date: '2024-06-22', description: 'Summer Sale Campaign', amount: -25.50, type: 'debit' },
-  { id: 'trx-005', date: '2024-06-25', description: 'Referral Commission', amount: 2.00, type: 'credit' },
+  // { id: 'trx-002', date: '2024-06-20', description: 'Binance Top-up', amount: 50.00, type: 'credit' },
+  // { id: 'trx-003', date: '2024-06-21', description: 'Top-up Discount (20%)', amount: 10.00, type: 'credit' },
+  // { id: 'trx-004', date: '2024-06-22', description: 'Summer Sale Campaign', amount: -25.50, type: 'debit' },
+  // { id: 'trx-005', date: '2024-06-25', description: 'Referral Commission', amount: 2.00, type: 'credit' },
 ];
 
 export default function FinancialsPage() {
