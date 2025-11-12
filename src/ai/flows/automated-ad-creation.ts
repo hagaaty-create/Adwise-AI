@@ -65,6 +65,9 @@ const automatedAdCampaignFlow = ai.defineFlow(
     // Force platform to be Google
     const modifiedInput = { ...input, platforms: ['Google' as const] };
     const {output} = await automatedAdCampaignPrompt(modifiedInput);
-    return output!;
+    if (!output) {
+      throw new Error('Failed to generate ad campaign. The AI model did not return any output.');
+    }
+    return output;
   }
 );

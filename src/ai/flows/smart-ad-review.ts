@@ -55,6 +55,9 @@ const smartAdReviewFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('Failed to review ad. The AI model did not return any output.');
+    }
+    return output;
   }
 );

@@ -69,6 +69,9 @@ const automatedSiteManagementFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('Failed to generate site management plan. The AI model did not return any output.');
+    }
+    return output;
   }
 );
