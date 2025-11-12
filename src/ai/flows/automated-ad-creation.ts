@@ -14,12 +14,15 @@ import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const AutomatedAdCampaignInputSchema = z.object({
-  adName: z.string().describe('The name of the ad campaign.'),
+  adName: z.string().describe('The name or headline of the ad campaign.'),
   productDescription: z.string().describe('A detailed description of the product or service being advertised.'),
-  targetAudience: z.string().describe('Description of the target audience for the ad campaign.'),
+  targetAudience: z.string().describe('Description of the target audience for the ad campaign, including age and interests.'),
   platforms: z.array(z.enum(['Google'])).describe('The platform to run the ad campaign on. Should always be Google.'),
   budget: z.number().describe('The total budget for the ad campaign.'),
   campaignDurationDays: z.number().describe('The duration of the ad campaign in days.'),
+  headline: z.string().describe('The main headline for the ad.'),
+  keywords: z.string().describe('A comma-separated list of keywords for the ad campaign.'),
+  location: z.string().describe('The geographical location to target (e.g., country or city).'),
 });
 export type AutomatedAdCampaignInput = z.infer<typeof AutomatedAdCampaignInputSchema>;
 
@@ -27,10 +30,10 @@ const AutomatedAdCampaignOutputSchema = z.object({
   campaignSummaries: z.array(
     z.object({
       platform: z.string().describe('The platform the ad campaign was created for.'),
-      adCopy: z.string().describe('The generated ad copy for the platform.'),
-      predictedReach: z.number().describe('The predicted reach of the ad campaign on the platform.'),
-      predictedConversions: z.number().describe('The predicted number of conversions from the ad campaign.'),
-      estimatedCost: z.number().describe('The estimated cost of the ad campaign on the platform.'),
+      adCopy: z.string().describe('The generated ad copy (description) for the platform.'),
+      predictedReach: z.number().describe('The predicted number of impressions (reach) of the ad campaign on the platform.'),
+      predictedConversions: z.number().describe('The predicted number of clicks (conversions) from the ad campaign.'),
+      estimatedCost: z.number().describe('The estimated cost of the ad campaign on the platform, which should equal the provided budget.'),
     })
   ).describe('A summary of the ad campaign for the Google platform, including ad copy, predicted reach, conversions and costs.'),
 });
@@ -44,15 +47,21 @@ const automatedAdCampaignPrompt = ai.definePrompt({
   name: 'automatedAdCampaignPrompt',
   input: {schema: AutomatedAdCampaignInputSchema},
   output: {schema: AutomatedAdCampaignOutputSchema},
-  prompt: `You are an expert Google Ads strategist. Generate a Google ad campaign for the following product/service. Provide a realistic performance simulation.
+  prompt: `You are an expert Google Ads strategist. Generate a Google ad campaign for the following product/service.
+Provide a realistic performance simulation. The estimated cost must exactly match the provided budget.
 
+Ad Headline: {{{headline}}}
 Product/Service Description: {{{productDescription}}}
 Target Audience: {{{targetAudience}}}
+Keywords: {{{keywords}}}
+Location: {{{location}}}
 Platform: Google
 Budget: {{{budget}}}
 Campaign Duration (days): {{{campaignDurationDays}}}
 
-For the Google platform, generate compelling ad copy, predict the reach and conversions, and estimate the cost.`,
+For the Google platform, generate compelling ad copy (description), predict the reach (impressions) and conversions (clicks), and confirm the estimated cost is exactly the budget provided.
+Your entire response must be in the specified JSON format.
+`,
 });
 
 const automatedAdCampaignFlow = ai.defineFlow(
@@ -67,6 +76,10 @@ const automatedAdCampaignFlow = ai.defineFlow(
     const {output} = await automatedAdCampaignPrompt(modifiedInput);
     if (!output) {
       throw new Error('Failed to generate ad campaign. The AI model did not return any output.');
+    }
+    // Ensure the estimated cost matches the budget
+    if (output.campaignSummaries.length > 0) {
+        output.campaignSummaries[0].estimatedCost = input.budget;
     }
     return output;
   }

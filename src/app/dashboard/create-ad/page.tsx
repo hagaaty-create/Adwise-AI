@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,17 +12,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Wand2 } from 'lucide-react';
+import { Loader2, Wand2, CheckCircle, Clock, BarChart2, DollarSign, Eye, MousePointerClick } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const formSchema = z.object({
-  adName: z.string().min(3, { message: 'Ad name must be at least 3 characters.' }),
+  headline: z.string().min(10, { message: 'Headline must be at least 10 characters.' }),
   productDescription: z.string().min(20, { message: 'Product description must be at least 20 characters.' }),
+  keywords: z.string().min(3, { message: 'Please enter at least one keyword.' }),
   targetAudience: z.string().min(10, { message: 'Target audience must be at least 10 characters.' }),
-  budget: z.coerce.number().min(1, { message: 'Budget must be at least $1.' }),
+  location: z.string().min(2, { message: 'Location is required.' }),
+  budget: z.coerce.number().min(1, { message: 'Budget must be at least $1.' }).max(4, { message: 'You can only use your $4 welcome bonus for now.' }),
   campaignDurationDays: z.coerce.number().int().min(1, { message: 'Duration must be at least 1 day.' }),
 });
 
 type FormData = z.infer<typeof formSchema>;
+
+type CampaignStatus = 'pending' | 'review' | 'active' | 'finished';
 
 const platformIcons: { [key: string]: React.ReactNode } = {
   Google: <svg role="img" viewBox="0 0 24 24" className="h-6 w-6"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.75 8.36,4.73 12.19,4.73C15.28,4.73 17.27,6.48 17.27,6.48L19.43,4.18C19.43,4.18 16.71,2.05 12.19,2.05C6.7,2.05 2.5,6.73 2.5,12C2.5,17.27 6.7,21.95 12.19,21.95C18.08,21.95 21.5,17.5 21.5,12.33C21.5,11.76 21.45,11.43 21.35,11.1Z"></path></svg>,
@@ -31,61 +36,141 @@ const platformIcons: { [key: string]: React.ReactNode } = {
 export default function CreateAdPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<AutomatedAdCampaignOutput | null>(null);
+  const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>('pending');
+  const [adSpend, setAdSpend] = useState(0);
+  const [impressions, setImpressions] = useState(0);
+  const [clicks, setClicks] = useState(0);
+  const [campaignData, setCampaignData] = useState<FormData | null>(null);
+
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      adName: '',
+      headline: '',
       productDescription: '',
-      targetAudience: '',
-      budget: 100,
-      campaignDurationDays: 7,
+      keywords: '',
+      targetAudience: 'Professionals aged 25-45 interested in marketing technology.',
+      location: 'Egypt',
+      budget: 4,
+      campaignDurationDays: 1,
     },
   });
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (campaignStatus === 'active' && results) {
+        const campaignSummary = results.campaignSummaries[0];
+        const totalSpend = campaignSummary.estimatedCost;
+        const totalImpressions = campaignSummary.predictedReach;
+        const totalClicks = campaignSummary.predictedConversions;
+        const durationSeconds = (campaignData?.campaignDurationDays || 1) * 24 * 60 * 60;
+
+        const spendPerSecond = totalSpend / durationSeconds;
+        const impressionsPerSecond = totalImpressions / durationSeconds;
+        const clicksPerSecond = totalClicks / durationSeconds;
+
+        interval = setInterval(() => {
+            setAdSpend(prev => {
+                const newSpend = prev + spendPerSecond * 2;
+                return Math.min(newSpend, totalSpend);
+            });
+            setImpressions(prev => {
+                 const newImpressions = prev + impressionsPerSecond * 2;
+                return Math.min(Math.floor(newImpressions), totalImpressions);
+            });
+            setClicks(prev => {
+                const newClicks = prev + clicksPerSecond * 2;
+                return Math.min(Math.floor(newClicks), totalClicks);
+            });
+        }, 2000); // Update every 2 seconds
+    }
+    
+    // Cleanup
+    return () => {
+        if (interval) {
+            clearInterval(interval);
+        }
+    };
+  }, [campaignStatus, results, campaignData]);
+
 
   async function onSubmit(values: FormData) {
     setIsLoading(true);
     setResults(null);
+    setCampaignStatus('pending');
+    setCampaignData(values);
+
     toast.info('AI is generating your Google Ad campaign...', {
         description: 'This may take a moment. Please wait.',
     });
     try {
       const result = await createAutomatedAdCampaign({
-        ...values,
-        platforms: ['Google']
+        adName: values.headline, // Use headline as adName
+        productDescription: values.productDescription,
+        targetAudience: values.targetAudience,
+        budget: values.budget,
+        campaignDurationDays: values.campaignDurationDays,
+        platforms: ['Google'],
+        headline: values.headline,
+        keywords: values.keywords,
+        location: values.location,
       });
       setResults(result);
       toast.success('Google Ad campaign generated successfully!');
+      setCampaignStatus('review');
+      
+      // Simulate review period
+      setTimeout(() => {
+        setCampaignStatus('active');
+        toast.success('Your campaign is now active!');
+      }, 5000); // 5 seconds for review
+
     } catch (error) {
       console.error('Failed to create ad campaign:', error);
       toast.error('Failed to create ad campaign', {
         description: 'An unexpected error occurred. Please try again later.',
       });
+      setCampaignStatus('pending');
     } finally {
       setIsLoading(false);
     }
   }
+
+  const renderStatusBadge = () => {
+    switch (campaignStatus) {
+      case 'review':
+        return <Badge variant="secondary"><Clock className="mr-2 h-4 w-4" />In Review</Badge>;
+      case 'active':
+        return <Badge className="bg-green-600 hover:bg-green-700"><CheckCircle className="mr-2 h-4 w-4" />Active</Badge>;
+      default:
+        return null;
+    }
+  };
+  
+  const hasCampaign = campaignStatus !== 'pending';
+
 
   return (
     <div className="grid gap-6">
       <Card>
         <CardHeader>
           <CardTitle>AI-Powered Google Ad Creation</CardTitle>
-          <CardDescription>Fill in the details below and our AI will write and design your Google Ad campaign.</CardDescription>
+          <CardDescription>Fill in the details below. Our AI will launch your ad campaign using your $4 welcome bonus.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <FormField
                     control={form.control}
-                    name="adName"
+                    name="headline"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Ad Name</FormLabel>
+                        <FormLabel>Ad Headline</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Summer Sale Campaign" {...field} />
+                          <Input placeholder="e.g., The Future of AI Advertising is Here" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -96,40 +181,56 @@ export default function CreateAdPage() {
                     name="productDescription"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product/Service Description</FormLabel>
+                        <FormLabel>Ad Description</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Describe what you are advertising in detail." className="resize-none" rows={5} {...field} />
+                          <Textarea placeholder="Describe what you are advertising in detail." className="resize-none" rows={4} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <FormField
+                   <FormField
+                    control={form.control}
+                    name="keywords"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Keywords</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., AI marketing, google ads, saas" {...field} />
+                        </FormControl>
+                        <FormDescription>Comma-separated keywords for targeting.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="space-y-6">
+                   <FormField
                     control={form.control}
                     name="targetAudience"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Target Audience</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="e.g., Young professionals aged 25-35 interested in tech and fitness." className="resize-none" rows={3} {...field} />
+                          <Textarea placeholder="e.g., Young professionals aged 25-35 interested in tech and fitness." className="resize-none" rows={2} {...field} />
                         </FormControl>
-                        <FormMessage />
+                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-                <div className="space-y-4">
-                  <FormItem>
-                    <div className="mb-4">
-                      <FormLabel className="text-base">Platform</FormLabel>
-                      <FormDescription>Your ads will run exclusively on Google.</FormDescription>
-                    </div>
-                     <div className="flex items-center space-x-2 rounded-md border border-input p-2 bg-muted">
-                        <div className="text-primary">{platformIcons['Google']}</div>
-                        <span className="font-medium">Google</span>
-                    </div>
-                  </FormItem>
-
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Egypt, Cairo" {...field} />
+                        </FormControl>
+                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -160,58 +261,67 @@ export default function CreateAdPage() {
                   </div>
                 </div>
               </div>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || hasCampaign}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                Generate Google Campaign
+                {hasCampaign ? 'Campaign Running' : 'Activate Campaign with $4 Bonus'}
               </Button>
             </form>
           </Form>
         </CardContent>
       </Card>
       
-      {isLoading && !results && (
-        <div className="text-center p-8">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="mt-2 text-muted-foreground">AI is crafting your campaign...</p>
-        </div>
-      )}
-
-      {results && (
+      {hasCampaign && results && campaignData && (
         <Card>
           <CardHeader>
-            <CardTitle>Generated Campaign Summary</CardTitle>
+            <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                    <BarChart2 />
+                    Live Campaign Performance
+                </CardTitle>
+                {renderStatusBadge()}
+            </div>
+            <CardDescription>{campaignData.headline}</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-1">
-            {results.campaignSummaries.map((summary, index) => (
-              <Card key={index} className="flex flex-col">
+          <CardContent className="grid gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div className="bg-muted p-4 rounded-lg">
+                      <p className="text-sm font-medium flex items-center justify-center gap-1"><DollarSign className="h-4 w-4"/> Ad Spend</p>
+                      <p className="text-2xl font-bold">${adSpend.toFixed(2)}</p>
+                  </div>
+                   <div className="bg-muted p-4 rounded-lg">
+                      <p className="text-sm font-medium flex items-center justify-center gap-1"><Eye className="h-4 w-4"/> Impressions</p>
+                      <p className="text-2xl font-bold">{impressions.toLocaleString()}</p>
+                  </div>
+                  <div className="bg-muted p-4 rounded-lg">
+                      <p className="text-sm font-medium flex items-center justify-center gap-1"><MousePointerClick className="h-4 w-4"/> Clicks</p>
+                      <p className="text-2xl font-bold">{clicks.toLocaleString()}</p>
+                  </div>
+                  <div className="bg-muted p-4 rounded-lg">
+                      <p className="text-sm font-medium">Cost Per Click</p>
+                      <p className="text-2xl font-bold">${clicks > 0 ? (adSpend / clicks).toFixed(2) : '0.00'}</p>
+                  </div>
+              </div>
+            
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {platformIcons[summary.platform]}
-                    {summary.platform}
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    {platformIcons.Google}
+                    AI-Generated Ad Details
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 flex-grow">
+                <CardContent className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-1">AI-Generated Ad Copy</h4>
-                    <p className="text-sm text-muted-foreground bg-slate-100 dark:bg-slate-800 p-3 rounded-md">{summary.adCopy}</p>
+                    <h4 className="font-semibold mb-1">Ad Copy</h4>
+                    <p className="text-sm text-muted-foreground bg-slate-100 dark:bg-slate-800 p-3 rounded-md">{results.campaignSummaries[0].adCopy}</p>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-sm font-medium">Predicted Reach</p>
-                      <p className="text-lg font-bold">{summary.predictedReach.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Predicted Conversions</p>
-                      <p className="text-lg font-bold">{summary.predictedConversions.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Estimated Cost</p>
-                      <p className="text-lg font-bold">${summary.estimatedCost.toFixed(2)}</p>
+                   <div>
+                    <h4 className="font-semibold mb-1">Targeted Keywords</h4>
+                    <div className="flex flex-wrap gap-2">
+                        {campaignData.keywords.split(',').map((kw, i) => <Badge key={i} variant="outline">{kw.trim()}</Badge>)}
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
           </CardContent>
         </Card>
       )}
