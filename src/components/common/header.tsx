@@ -11,6 +11,7 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { CommandPalette } from './command-palette';
 
 export function Header() {
   return (
@@ -20,7 +21,8 @@ export function Header() {
         <Zap className="h-6 w-6 text-primary" />
         <span className="text-lg font-bold tracking-tight hidden sm:inline-block">AdWise AI</span>
       </div>
-      <div className="ml-auto flex items-center gap-4">
+      <div className="ml-auto flex items-center gap-2">
+        <CommandPalette />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
