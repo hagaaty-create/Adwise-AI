@@ -34,7 +34,8 @@ const platformIcons: { [key: string]: React.ReactNode } = {
 };
 
 export default function CreateAdPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<AutomatedAdCampaignOutput | null>(null);
   const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>('pending');
   const [adSpend, setAdSpend] = useState(0);
@@ -57,6 +58,19 @@ export default function CreateAdPage() {
   });
 
   useEffect(() => {
+    // Simulate loading existing campaign data
+    const savedCampaignStatus = sessionStorage.getItem('campaignStatus') as CampaignStatus | null;
+    if (savedCampaignStatus && savedCampaignStatus !== 'pending') {
+      const savedResults = JSON.parse(sessionStorage.getItem('campaignResults') || 'null');
+      const savedData = JSON.parse(sessionStorage.getItem('campaignData') || 'null');
+      setResults(savedResults);
+      setCampaignData(savedData);
+      setCampaignStatus(savedCampaignStatus);
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
 
     if (campaignStatus === 'active' && results && campaignData) {
@@ -64,13 +78,13 @@ export default function CreateAdPage() {
         const totalSpend = campaignSummary.estimatedCost;
         const totalImpressions = campaignSummary.predictedReach;
         const totalClicks = campaignSummary.predictedConversions;
-        // Total duration in seconds for the whole campaign
         const totalDurationSeconds = campaignData.campaignDurationDays * 24 * 60 * 60;
         
-        let elapsedSeconds = 0;
+        let elapsedSeconds = parseFloat(sessionStorage.getItem('elapsedSeconds') || '0');
 
         interval = setInterval(() => {
-            elapsedSeconds += 2; // Simulating time passing every 2 seconds
+            elapsedSeconds += 2; 
+            sessionStorage.setItem('elapsedSeconds', elapsedSeconds.toString());
             
             const progress = Math.min(elapsedSeconds / totalDurationSeconds, 1);
             
@@ -80,13 +94,13 @@ export default function CreateAdPage() {
 
             if (progress >= 1) {
                 setCampaignStatus('finished');
+                sessionStorage.setItem('campaignStatus', 'finished');
                 toast.success('Your campaign has finished!');
                 clearInterval(interval);
             }
-        }, 2000); // Update every 2 seconds
+        }, 2000);
     }
     
-    // Cleanup
     return () => {
         if (interval) {
             clearInterval(interval);
@@ -96,20 +110,20 @@ export default function CreateAdPage() {
 
 
   async function onSubmit(values: FormData) {
-    setIsLoading(true);
+    setIsGenerating(true);
     setResults(null);
     setCampaignStatus('pending');
-    setCampaignData(values);
     setAdSpend(0);
     setImpressions(0);
     setClicks(0);
+    sessionStorage.clear();
 
     toast.info('AI is generating your Google Ad campaign...', {
         description: 'This may take a moment. Please wait.',
     });
     try {
       const result = await createAutomatedAdCampaign({
-        adName: values.headline, // Use headline as adName
+        adName: values.headline,
         productDescription: values.productDescription,
         targetAudience: values.targetAudience,
         budget: values.budget,
@@ -120,12 +134,19 @@ export default function CreateAdPage() {
         location: values.location,
       });
       setResults(result);
-      toast.success('Google Ad campaign generated successfully!');
+      setCampaignData(values);
       setCampaignStatus('review');
       
-      // Simulate review period (10 seconds)
+      sessionStorage.setItem('campaignResults', JSON.stringify(result));
+      sessionStorage.setItem('campaignData', JSON.stringify(values));
+      sessionStorage.setItem('campaignStatus', 'review');
+      sessionStorage.setItem('elapsedSeconds', '0');
+
+      toast.success('Google Ad campaign generated successfully!');
+      
       setTimeout(() => {
         setCampaignStatus('active');
+        sessionStorage.setItem('campaignStatus', 'active');
         toast.success('Your campaign is now active and running!');
       }, 10000);
 
@@ -136,8 +157,20 @@ export default function CreateAdPage() {
       });
       setCampaignStatus('pending');
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
+  }
+  
+  function handleCreateNewCampaign() {
+    setIsGenerating(false);
+    setResults(null);
+    setCampaignStatus('pending');
+    setCampaignData(null);
+    setAdSpend(0);
+    setImpressions(0);
+    setClicks(0);
+    sessionStorage.clear();
+    form.reset();
   }
 
   const renderStatusBadge = () => {
@@ -154,6 +187,14 @@ export default function CreateAdPage() {
   };
   
   const hasCampaign = campaignStatus !== 'pending';
+
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
+  }
 
 
   return (
@@ -175,7 +216,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>Ad Headline</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., The Future of AI Advertising is Here" {...field} />
+                          <Input placeholder="e.g., The Future of AI Advertising is Here" {...field} disabled={hasCampaign} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -188,7 +229,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>Ad Description</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Describe what you are advertising in detail." className="resize-none" rows={4} {...field} />
+                          <Textarea placeholder="Describe what you are advertising in detail." className="resize-none" rows={4} {...field} disabled={hasCampaign} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -201,7 +242,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>Keywords</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., AI marketing, google ads, saas" {...field} />
+                          <Input placeholder="e.g., AI marketing, google ads, saas" {...field} disabled={hasCampaign} />
                         </FormControl>
                         <FormDescription>Comma-separated keywords for targeting.</FormDescription>
                         <FormMessage />
@@ -217,7 +258,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>Target Audience</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="e.g., Young professionals aged 25-35 interested in tech and fitness." className="resize-none" rows={2} {...field} />
+                          <Textarea placeholder="e.g., Young professionals aged 25-35 interested in tech and fitness." className="resize-none" rows={2} {...field} disabled={hasCampaign} />
                         </FormControl>
                          <FormMessage />
                       </FormItem>
@@ -230,7 +271,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>Location</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Egypt, Cairo" {...field} />
+                          <Input placeholder="e.g., Egypt, Cairo" {...field} disabled={hasCampaign} />
                         </FormControl>
                          <FormMessage />
                       </FormItem>
@@ -244,7 +285,7 @@ export default function CreateAdPage() {
                         <FormItem>
                           <FormLabel>Budget ($)</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} />
+                            <Input type="number" {...field} disabled={hasCampaign} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -257,7 +298,7 @@ export default function CreateAdPage() {
                         <FormItem>
                           <FormLabel>Duration (Days)</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} />
+                            <Input type="number" {...field} disabled={hasCampaign} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -266,10 +307,13 @@ export default function CreateAdPage() {
                   </div>
                 </div>
               </div>
-              <Button type="submit" disabled={isLoading || hasCampaign}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                {hasCampaign ? 'Create a New Campaign' : 'Activate Campaign with $4 Bonus'}
-              </Button>
+              
+              {!hasCampaign && (
+                <Button type="submit" disabled={isGenerating}>
+                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    Activate Campaign with $4 Bonus
+                </Button>
+              )}
             </form>
           </Form>
         </CardContent>
@@ -327,6 +371,14 @@ export default function CreateAdPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {campaignStatus === 'finished' && (
+                <div className="flex justify-center">
+                  <Button onClick={handleCreateNewCampaign}>
+                    <Wand2 className="mr-2 h-4 w-4" /> Create a New Campaign
+                  </Button>
+                </div>
+              )}
           </CardContent>
         </Card>
       )}
