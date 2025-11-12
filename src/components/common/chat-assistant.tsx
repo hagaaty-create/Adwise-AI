@@ -71,16 +71,22 @@ export function ChatAssistant() {
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 z-50">
-        <Button onClick={() => setIsOpen(!isOpen)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
-          {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-        </Button>
-      </div>
+      {!isOpen && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Button onClick={() => setIsOpen(true)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
+            <MessageCircle className="h-6 w-6" />
+          </Button>
+        </div>
+      )}
 
       {isOpen && (
-        <Card className="fixed bottom-20 right-4 z-50 w-full max-w-sm h-[60vh] flex flex-col shadow-2xl">
+        <Card className="fixed bottom-4 right-4 z-50 w-full max-w-sm h-[60vh] flex flex-col shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
             <h3 className="font-semibold">Hagaaty Assistant</h3>
+            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-6 w-6">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close chat</span>
+            </Button>
           </CardHeader>
           <CardContent className="flex-grow p-0">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
