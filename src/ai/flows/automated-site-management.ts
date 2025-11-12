@@ -5,7 +5,7 @@
  *
  * It includes functionalities such as creating new pages and articles, analyzing competitor SEO, and generating top-ranking content.
  * - `automatedSiteManagement` - The main function to trigger the site management flow.
- * - `AutomatedSiteManagementInput` - The input type for the automatedSiteManagement function.
+ * - `AutomatedSiteManagementInput` - The input type for the automatedSiteManagement functionूं
  * - `AutomatedSiteManagementOutput` - The output type for the automatedSiteManagement function.
  */
 
