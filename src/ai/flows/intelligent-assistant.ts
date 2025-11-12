@@ -10,6 +10,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { GenkitError } from 'genkit';
+import { defineFlow, A, O } from 'genkit';
+import { toZod } from 'genkit/zod';
 
 const AssistUserInputSchema = z.object({
   query: z.string().describe('The user query.'),
@@ -65,7 +67,6 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
     }
 
-    // Direct and safe mapping of history
     const formattedHistory = (history || []).map(msg => ({
         role: msg.role === 'assistant' ? 'model' as const : 'user' as const,
         content: [{ text: msg.content || '' }]
@@ -87,7 +88,6 @@ const intelligentAssistantFlow = ai.defineFlow(
 
     } catch (e) {
       console.error('Error in intelligentAssistantFlow:', e);
-      // It's better to throw a structured error
       throw new GenkitError({
         status: 'INTERNAL',
         message: 'An error occurred while processing the request with the AI model.',
