@@ -82,11 +82,11 @@ const intelligentAssistantFlow = ai.defineFlow(
     }));
 
     let response = await ai.generate({
+        model: 'googleai/gemini-1.5-flash',
         prompt: query,
         history: formattedHistory,
         tools: [sendComplaintEmail],
         system: systemInstruction,
-        model: 'googleai/gemini-1.5-flash',
     });
     
     while (response.isToolRequest()) {
