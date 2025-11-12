@@ -1,4 +1,4 @@
-import { Megaphone, LogOut, User as UserIcon } from 'lucide-react';
+import { Zap, LogOut, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,8 +17,8 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <SidebarTrigger className="sm:hidden" />
       <div className="flex items-center gap-2 font-semibold">
-        <Megaphone className="h-6 w-6 text-primary" />
-        <span className="text-lg font-bold tracking-tight hidden sm:inline-block">Hagaaty</span>
+        <Zap className="h-6 w-6 text-primary" />
+        <span className="text-lg font-bold tracking-tight hidden sm:inline-block">AdWise AI</span>
       </div>
       <div className="ml-auto flex items-center gap-4">
         <DropdownMenu>

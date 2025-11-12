@@ -7,7 +7,7 @@ import { ChatAssistant } from '@/components/common/chat-assistant';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Hagaaty',
+  title: 'AdWise AI',
   description: 'The All-in-One AI-Powered Advertising Platform',
 };
 

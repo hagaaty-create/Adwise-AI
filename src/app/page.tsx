@@ -8,6 +8,7 @@ import {
   LineChart,
   Wallet,
   CheckCircle,
+  Zap,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -53,8 +54,8 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Megaphone className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tighter">Hagaaty</h1>
+          <Zap className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl font-bold tracking-tighter">AdWise AI</h1>
         </div>
         <nav className="flex items-center gap-4">
           <Button variant="ghost" asChild>
@@ -70,10 +71,10 @@ export default function Home() {
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter mb-4 font-headline">
-              Start Google ads AI
+              The Future of Advertising is Intelligent
             </h2>
             <p className="text-lg text-muted-foreground mt-4 mb-8">
-              Ad activation within 10 minutes by AI
+              Launch, manage, and optimize your ad campaigns with the power of AI. Activation within 10 minutes.
             </p>
             <Button size="lg" asChild>
               <Link href="/signup">Claim Your $4 Welcome Bonus</Link>
@@ -121,7 +122,7 @@ export default function Home() {
       </main>
 
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Hagaaty. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} AdWise AI. All rights reserved.</p>
       </footer>
     </div>
   );
