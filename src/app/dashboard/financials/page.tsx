@@ -80,8 +80,8 @@ export default function FinancialsPage() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$30.50</div>
-            <p className="text-xs text-muted-foreground">Available for ad spend</p>
+            <div className="text-2xl font-bold">$4.00</div>
+            <p className="text-xs text-muted-foreground">Includes $4.00 welcome bonus</p>
           </CardContent>
         </Card>
         <Card>
