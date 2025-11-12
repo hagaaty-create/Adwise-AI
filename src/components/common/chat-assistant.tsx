@@ -41,10 +41,11 @@ export function ChatAssistant() {
     setIsLoading(true);
 
     try {
-      // The history is already in the correct format, no need to filter.
+      // Pass only the history, not the latest message.
+      const history = messages;
       const result = await assistUser({
         query: trimmedInput,
-        history: newMessages,
+        history: history,
       });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
