@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Sidebar,
   SidebarContent,
@@ -6,6 +8,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarTrigger,
+  SidebarRail
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -36,10 +40,11 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
+      <SidebarRail />
       <SidebarContent>
         <SidebarHeader>
-          {/* Header content can go here if needed */}
+            <SidebarTrigger />
         </SidebarHeader>
         <SidebarMenu>
           {navItems.map((item) => (

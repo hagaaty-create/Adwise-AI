@@ -1,6 +1,6 @@
 'use client';
 
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Header } from '@/components/common/header';
 import { SidebarNav } from '@/components/common/sidebar-nav';
 
@@ -11,15 +11,13 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <SidebarNav />
-        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+        <SidebarInset>
           <Header />
-          <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+          <main className="p-4 sm:px-6 sm:py-4">
             {children}
           </main>
-        </div>
-      </div>
+        </SidebarInset>
     </SidebarProvider>
   );
 }
