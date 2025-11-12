@@ -39,8 +39,7 @@ export function ChatAssistant() {
     setIsLoading(true);
 
     try {
-      // Pass the existing messages history, not the new one with the user's latest query
-      const result = await assistUser({ query: input, history: messages });
+      const result = await assistUser({ query: input, history: currentMessages });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
       setMessages((prev) => [...prev, assistantMessage]);
