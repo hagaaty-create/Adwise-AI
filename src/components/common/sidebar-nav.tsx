@@ -17,7 +17,6 @@ import {
   Bot,
   CheckCircle,
   BrainCircuit,
-  PieChart,
   Wallet,
   Briefcase,
   Settings,
