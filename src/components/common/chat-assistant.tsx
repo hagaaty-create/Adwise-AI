@@ -33,14 +33,15 @@ export function ChatAssistant() {
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
 
-    const currentMessages: Message[] = [...messages, { role: 'user', content: trimmedInput }];
-    setMessages(currentMessages);
+    const userMessage: Message = { role: 'user', content: trimmedInput };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
     try {
       // Pass the previous messages as history
-      const history = messages;
+      const history = messages; 
 
       const result = await assistUser({
         query: trimmedInput,
@@ -74,14 +75,16 @@ export function ChatAssistant() {
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 z-50">
-        <Button onClick={() => setIsOpen(!isOpen)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
-           <MessageCircle className="h-6 w-6" />
-        </Button>
-      </div>
+      {!isOpen && (
+        <div className="fixed bottom-4 right-4 z-50">
+            <Button onClick={() => setIsOpen(true)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
+            <MessageCircle className="h-6 w-6" />
+            </Button>
+        </div>
+      )}
 
       {isOpen && (
-        <Card className="fixed bottom-20 right-4 z-50 w-full max-w-sm h-[60vh] flex flex-col shadow-2xl">
+        <Card className="fixed bottom-4 right-4 z-50 w-full max-w-sm h-[60vh] flex flex-col shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
             <h3 className="font-semibold">Hagaaty Assistant</h3>
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-6 w-6">

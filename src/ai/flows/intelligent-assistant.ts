@@ -9,6 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { GenkitError } from 'genkit';
 
 const AssistUserInputSchema = z.object({
   query: z.string().describe('The user query.'),
@@ -57,21 +58,38 @@ const intelligentAssistantFlow = ai.defineFlow(
   },
   async ({ query, history }) => {
     
+    if (!query) {
+      throw new GenkitError({
+        status: 'INVALID_ARGUMENT',
+        message: 'Query cannot be empty.',
+      });
+    }
+
     const formattedHistory = (history || [])
+      .filter(msg => msg && msg.content) // Ensure message and content exist
       .map(msg => ({
         role: msg.role === 'assistant' ? ('model' as const) : ('user' as const),
         content: [{ text: msg.content }]
       }));
 
-    const result = await assistantPrompt({
-        prompt: query,
-        history: formattedHistory,
-    });
+    try {
+      const result = await assistantPrompt({
+          prompt: query,
+          history: formattedHistory,
+      });
 
-    const response = result.text;
-    
-    return {
-        response: response ?? "I'm sorry, I couldn't get a response. Please try again.",
-    };
+      const response = result.text;
+      
+      return {
+          response: response ?? "I'm sorry, I couldn't get a response. Please try again.",
+      };
+    } catch (e) {
+      console.error('Error in intelligentAssistantFlow:', e);
+      // It's better to throw a structured error
+      throw new GenkitError({
+        status: 'INTERNAL',
+        message: 'An error occurred while processing the request with the AI model.',
+      });
+    }
   }
 );
