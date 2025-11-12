@@ -47,8 +47,6 @@ const assistantPrompt = ai.definePrompt({
     name: 'hagaatyAssistantPrompt',
     model: 'googleai/gemini-pro',
     system: systemInstruction,
-    // Disabling tools to resolve a persistent error.
-    // tools: [sendComplaintEmail],
 });
 
 
@@ -62,29 +60,16 @@ const intelligentAssistantFlow = ai.defineFlow(
     
     // Convert the chat history from the client to the format Genkit expects.
     const formattedHistory: { role: 'user' | 'model'; content: Part[] }[] = (history || [])
-    .filter(msg => msg && msg.content) // Filter out any empty/invalid messages
     .map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       content: [{ text: msg.content }]
     }));
 
-    let response = await assistantPrompt({
+    const response = await assistantPrompt({
         prompt: query,
         history: formattedHistory,
     });
     
-    // Tool-related logic is disabled for now.
-    // while (response.isToolRequest()) {
-    //   const toolRequest = response.toolRequest!;
-    //   const tool = ai.getTool(toolRequest.name);
-    //   if (!tool) throw new Error(`Tool not found: ${toolRequest.name}`);
-    //   const toolResult = await tool.fn(toolRequest.input);
-
-    //   response = await response.continue({
-    //     toolResult: toolResult,
-    //   });
-    // }
-
     return {
         response: response.text ?? "I'm sorry, I couldn't get a response. Please try again.",
     };

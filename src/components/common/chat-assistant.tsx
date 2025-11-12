@@ -30,18 +30,21 @@ export function ChatAssistant() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    const trimmedInput = input.trim();
+    if (!trimmedInput || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: input };
+    const userMessage: Message = { role: 'user', content: trimmedInput };
     const currentMessages = [...messages, userMessage];
+    
     setMessages(currentMessages);
-    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
     try {
-      // Pass the full history, including the new user message, in the correct format
-      const result = await assistUser({ query: currentInput, history: currentMessages.filter(msg => msg && msg.content) });
+      const result = await assistUser({
+        query: trimmedInput,
+        history: currentMessages.filter(msg => msg && msg.content),
+      });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
       setMessages((prev) => [...prev, assistantMessage]);
@@ -118,7 +121,7 @@ export function ChatAssistant() {
                 placeholder="Ask me anything..."
                 disabled={isLoading}
               />
-              <Button type="submit" size="icon" disabled={isLoading}>
+              <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
             </form>
