@@ -11,33 +11,6 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import {type Part} from 'genkit';
 
-const ComplaintSchema = z.object({
-  complaintDetails: z.string().describe("The user's complaint or feedback."),
-});
-
-const sendComplaintEmail = ai.defineTool(
-  {
-    name: 'sendComplaintEmail',
-    description: 'Use this tool when a user wants to file a complaint or provide negative feedback. It sends the complaint to the support team.',
-    inputSchema: ComplaintSchema,
-    outputSchema: z.object({
-      success: z.boolean(),
-      message: z.string(),
-    }),
-  },
-  async (input) => {
-    console.log(`Complaint received: ${input.complaintDetails}`);
-    console.log('Sending to hagaaty@gmail.com...');
-    // In a real application, you would integrate an email sending service here.
-    // For this prototype, we'll simulate a successful email dispatch.
-    return {
-      success: true,
-      message: 'Your complaint has been received. Our team will look into it. Thank you for your feedback.',
-    };
-  }
-);
-
-
 const AssistUserInputSchema = z.object({
   query: z.string().describe('The user query.'),
   history: z.array(z.object({
@@ -63,7 +36,7 @@ const systemInstruction = `You are "Hagaaty Assistant", a friendly and helpful A
 1.  **Introduce the Website:** Explain what Hagaaty is. It's an all-in-one AI-powered advertising platform that lets users start Google ads, with activation in about 10 minutes. It offers automated ad creation, smart ad review, automated site management with SEO, automated marketing funnels, integrated financials, and special subscriptions for agencies.
 2.  **Guide Users:** Help users find pages like "Create Ad", "Billing", or "Agency Subscription".
 3.  **Answer Questions:** Answer questions about the features of the site.
-4.  **Handle Complaints:** If a user expresses frustration, wants to complain, or gives negative feedback, use the \`sendComplaintEmail\` tool to report the issue. Inform the user that their complaint has been sent.
+4.  **Handle Complaints:** If a user expresses frustration, wants to complain, or gives negative feedback, politely acknowledge their feedback and state that you are an AI and cannot process complaints directly at this time, but you will forward the feedback to the team.
 
 **Interaction Style:**
 - Be polite, patient, and clear in your responses.
@@ -74,7 +47,8 @@ const assistantPrompt = ai.definePrompt({
     name: 'hagaatyAssistantPrompt',
     model: 'googleai/gemini-pro',
     system: systemInstruction,
-    tools: [sendComplaintEmail],
+    // Disabling tools to resolve a persistent error.
+    // tools: [sendComplaintEmail],
 });
 
 
@@ -99,16 +73,17 @@ const intelligentAssistantFlow = ai.defineFlow(
         history: formattedHistory,
     });
     
-    while (response.isToolRequest()) {
-      const toolRequest = response.toolRequest!;
-      const tool = ai.getTool(toolRequest.name);
-      if (!tool) throw new Error(`Tool not found: ${toolRequest.name}`);
-      const toolResult = await tool.fn(toolRequest.input);
+    // Tool-related logic is disabled for now.
+    // while (response.isToolRequest()) {
+    //   const toolRequest = response.toolRequest!;
+    //   const tool = ai.getTool(toolRequest.name);
+    //   if (!tool) throw new Error(`Tool not found: ${toolRequest.name}`);
+    //   const toolResult = await tool.fn(toolRequest.input);
 
-      response = await response.continue({
-        toolResult: toolResult,
-      });
-    }
+    //   response = await response.continue({
+    //     toolResult: toolResult,
+    //   });
+    // }
 
     return {
         response: response.text ?? "I'm sorry, I couldn't get a response. Please try again.",
