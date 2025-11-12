@@ -32,7 +32,7 @@ const navItems = [
   { href: '/dashboard/review-ad', icon: CheckCircle, label: 'Review Ad' },
   { href: '/dashboard/site-management', icon: BrainCircuit, label: 'Site AI' },
   { href: '/dashboard/marketing', icon: Bot, label: 'Marketing AI' },
-  { href: '/dashboard/billing', icon: Wallet, label: 'Billing' },
+  { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
   { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
 ];
 
