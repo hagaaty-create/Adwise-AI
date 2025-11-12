@@ -9,7 +9,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import {type Part} from 'genkit';
 
 const AssistUserInputSchema = z.object({
   query: z.string().describe('The user query.'),
@@ -58,12 +57,11 @@ const intelligentAssistantFlow = ai.defineFlow(
   },
   async ({ query, history }) => {
     
-    // Convert the chat history from the client to the format Genkit expects.
     const formattedHistory = (history || [])
-      .filter(msg => msg && msg.role && msg.content) // Defensive check for valid messages
+      .filter(msg => msg && msg.role && msg.content)
       .map(msg => ({
         role: msg.role === 'assistant' ? ('model' as const) : ('user' as const),
-        content: msg.content 
+        content: [{ text: msg.content }]
       }));
 
     const response = await assistantPrompt({
