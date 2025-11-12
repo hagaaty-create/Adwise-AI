@@ -41,7 +41,7 @@ export function ChatAssistant() {
 
     try {
       // Pass the full history, including the new user message, in the correct format
-      const result = await assistUser({ query: currentInput, history: messages });
+      const result = await assistUser({ query: currentInput, history: currentMessages });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
       setMessages((prev) => [...prev, assistantMessage]);
