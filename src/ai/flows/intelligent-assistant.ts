@@ -9,6 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import {type Part} from 'genkit';
 
 const ComplaintSchema = z.object({
   complaintDetails: z.string().describe("The user's complaint or feedback."),
@@ -73,15 +74,22 @@ const intelligentAssistantFlow = ai.defineFlow(
     outputSchema: AssistUserOutputSchema,
   },
   async ({ query, history }) => {
+    
+    // Convert the chat history from the client to the format Genkit expects.
+    const formattedHistory: { role: 'user' | 'model'; content: Part[] }[] = (history || []).map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      content: [{ text: msg.content }]
+    }));
+
     const response = await ai.generate({
         prompt: query,
-        history: history,
+        history: formattedHistory,
         tools: [sendComplaintEmail],
         system: systemInstruction,
         model: 'googleai/gemini-1.5-flash',
     });
     
-    const toolCalls = response.output.toolCalls;
+    const toolCalls = response.output?.toolCalls;
     if (toolCalls?.length) {
         const toolCall = toolCalls[0];
         const tool = ai.getTool(toolCall.name);
@@ -93,7 +101,7 @@ const intelligentAssistantFlow = ai.defineFlow(
     }
 
     return {
-        response: response.output.text ?? "I'm sorry, I couldn't get a response. Please try again.",
+        response: response.output?.text ?? "I'm sorry, I couldn't get a response. Please try again.",
     };
   }
 );
