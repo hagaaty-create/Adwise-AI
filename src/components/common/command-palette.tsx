@@ -11,6 +11,8 @@ import {
   Wallet,
   Briefcase,
   Search,
+  UploadCloud,
+  Terminal,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -22,7 +24,18 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -34,9 +47,14 @@ const navItems = [
     { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
 ];
 
+const gitCommands = `git add .
+git commit -m "feat: Final updates"
+git push origin main`;
+
 export function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  const [showPublishDialog, setShowPublishDialog] = React.useState(false);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -54,6 +72,14 @@ export function CommandPalette() {
     setOpen(false);
     command();
   }, []);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Commands copied to clipboard!", {
+      description: "Now paste them into your terminal.",
+    });
+  };
+
 
   return (
     <>
@@ -89,8 +115,44 @@ export function CommandPalette() {
               </CommandItem>
             ))}
           </CommandGroup>
+          <CommandSeparator />
+           <CommandGroup heading="Actions">
+            <CommandItem
+              value="Publish"
+              onSelect={() => {
+                runCommand(() => setShowPublishDialog(true));
+              }}
+            >
+              <UploadCloud className="mr-2 h-4 w-4" />
+              Publish Site Updates
+            </CommandItem>
+          </CommandGroup>
         </CommandList>
       </CommandDialog>
+      <AlertDialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Terminal /> How to Publish Your Updates
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              To publish your changes, copy the commands below and paste them into your terminal. This cannot be done from the browser.
+              <div className="mt-4 p-4 bg-muted rounded-lg font-mono text-sm text-foreground relative">
+                <pre>{gitCommands}</pre>
+                <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(gitCommands)}>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+                </Button>
+              </div>
+               <p className="mt-4 text-xs text-muted-foreground">
+                Note: If you encounter an 'Authentication failed' error, you need to configure access permissions between this environment and your GitHub account first.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowPublishDialog(false)}>Got it</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
