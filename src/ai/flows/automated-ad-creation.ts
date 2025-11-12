@@ -52,10 +52,7 @@ Platform: Google
 Budget: {{{budget}}}
 Campaign Duration (days): {{{campaignDurationDays}}}
 
-For the Google platform, generate compelling ad copy, predict the reach and conversions, and estimate the cost. The response should be a JSON array containing one object for Google.
-
-Output should follow this schema:
-${JSON.stringify(AutomatedAdCampaignOutputSchema.shape, null, 2)}`,
+For the Google platform, generate compelling ad copy, predict the reach and conversions, and estimate the cost. The response should be a JSON array containing one object for Google.`,
 });
 
 const automatedAdCampaignFlow = ai.defineFlow(
