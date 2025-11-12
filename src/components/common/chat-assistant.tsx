@@ -34,18 +34,18 @@ export function ChatAssistant() {
     if (!trimmedInput || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: trimmedInput };
-    const newMessages = [...messages, userMessage];
     
-    setMessages(newMessages);
+    // The history is the state of messages *before* adding the new ones.
+    const history = messages; 
+
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      // Pass only the history, not the latest message.
-      const history = messages;
       const result = await assistUser({
         query: trimmedInput,
-        history: history,
+        history: history, // Send the old history
       });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
