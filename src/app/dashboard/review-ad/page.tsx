@@ -118,9 +118,9 @@ export default function ReviewAdPage() {
       )}
 
       {result && (
-        <Alert variant={result.isApproved ? 'default' : 'destructive'} className={result.isApproved ? 'border-green-500 bg-green-50' : ''}>
-          {result.isApproved ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-          <AlertTitle className="font-bold">
+        <Alert variant={result.isApproved ? 'default' : 'destructive'} className={result.isApproved ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : ''}>
+          {result.isApproved ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4" />}
+          <AlertTitle className={cn("font-bold", result.isApproved ? 'text-green-700 dark:text-green-400' : 'text-destructive')}>
             {result.isApproved ? 'Ad Approved' : 'Ad Rejected'}
           </AlertTitle>
           <AlertDescription>{result.reason}</AlertDescription>
