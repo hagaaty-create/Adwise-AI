@@ -4,7 +4,7 @@
  * @fileOverview A smart ad review AI agent.
  *
  * - smartAdReview - A function that handles the ad review process.
- * - SmartAdReviewInput - The input type for the smartAdReview function.
+ * - SmartAdReviewInput - The input type for the smartAdreview function.
  * - SmartAdReviewOutput - The return type for the smartAdReview function.
  */
 
