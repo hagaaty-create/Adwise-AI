@@ -33,17 +33,15 @@ export function ChatAssistant() {
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: trimmedInput };
-    
-    // The history is the state of messages *before* adding the new ones.
-    const history = messages; 
-
-    setMessages((prev) => [...prev, userMessage]);
+    const currentMessages: Message[] = [...messages, { role: 'user', content: trimmedInput }];
+    setMessages(currentMessages);
     setInput('');
     setIsLoading(true);
 
     try {
-      // Pass the new query and the previous history separately
+      // Pass the previous messages as history
+      const history = messages;
+
       const result = await assistUser({
         query: trimmedInput,
         history: history,
@@ -78,7 +76,7 @@ export function ChatAssistant() {
     <>
       <div className="fixed bottom-4 right-4 z-50">
         <Button onClick={() => setIsOpen(!isOpen)} size="icon" className="rounded-full h-14 w-14 shadow-lg">
-          {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+           <MessageCircle className="h-6 w-6" />
         </Button>
       </div>
 
@@ -86,6 +84,10 @@ export function ChatAssistant() {
         <Card className="fixed bottom-20 right-4 z-50 w-full max-w-sm h-[60vh] flex flex-col shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
             <h3 className="font-semibold">Hagaaty Assistant</h3>
+            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-6 w-6">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close chat</span>
+            </Button>
           </CardHeader>
           <CardContent className="flex-grow p-0">
             <ScrollArea className="h-full" ref={scrollAreaRef}>

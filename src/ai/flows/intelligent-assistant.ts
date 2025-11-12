@@ -58,7 +58,6 @@ const intelligentAssistantFlow = ai.defineFlow(
   async ({ query, history }) => {
     
     const formattedHistory = (history || [])
-      .filter(msg => msg && msg.role && msg.content)
       .map(msg => ({
         role: msg.role === 'assistant' ? ('model' as const) : ('user' as const),
         content: [{ text: msg.content }]
