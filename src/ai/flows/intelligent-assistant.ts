@@ -60,10 +60,10 @@ const intelligentAssistantFlow = ai.defineFlow(
     
     // Convert the chat history from the client to the format Genkit expects.
     const formattedHistory: { role: 'user' | 'model'; content: Part[] }[] = (history || [])
-    .map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      content: [{ text: msg.content }]
-    }));
+      .map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        content: [{ text: msg.content }]
+      }));
 
     const response = await assistantPrompt({
         prompt: query,

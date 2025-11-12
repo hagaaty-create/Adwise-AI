@@ -34,16 +34,19 @@ export function ChatAssistant() {
     if (!trimmedInput || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: trimmedInput };
-    const currentMessages = [...messages, userMessage];
+    const newMessages = [...messages, userMessage];
     
-    setMessages(currentMessages);
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
     try {
+      // Filter the history on the client-side to ensure no invalid data is sent.
+      const cleanHistory = newMessages.filter(msg => msg && msg.content);
+      
       const result = await assistUser({
         query: trimmedInput,
-        history: currentMessages.filter(msg => msg && msg.content),
+        history: cleanHistory,
       });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
