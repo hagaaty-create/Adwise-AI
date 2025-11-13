@@ -84,7 +84,15 @@ const intelligentAssistantFlow = ai.defineFlow(
     }
 
     try {
-      const model = googleAI.model('gemini-pro');
+      // Explicitly pass the API key to the model
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new GenkitError({
+            status: 'FAILED_PRECONDITION',
+            message: 'GEMINI_API_KEY is not set in the environment.',
+        });
+      }
+      const model = googleAI.model('gemini-pro', { apiKey });
 
       // Correctly build the history for the model.
       const historyForModel = (history || []).map(msg => ({
