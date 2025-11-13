@@ -15,7 +15,7 @@ async function ensureDbSeeded() {
     try {
         await sql`SELECT 1 FROM users LIMIT 1;`;
     } catch (error: any) {
-        if (error.message.includes('relation "users" does not exist') || error.message.includes('relation "withdrawals" does not exist')) {
+        if (error.message.includes('relation "users" does not exist') || error.message.includes('relation "withdrawals" does not exist') || error.message.includes('relation "campaigns" does not exist')) {
             console.log("Tables not found, seeding database...");
             await seed();
         } else {
