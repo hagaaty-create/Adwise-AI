@@ -120,7 +120,7 @@ export default function FinancialsPage() {
         description: `بعد التحويل، يرجى إرسال إيصال الدفع إلى البريد الإلكتروني للدعم. سيتم إرسال إشعار إلى المسؤول للمتابعة.`
     });
     // Send an email to admin to notify them of the manual payment attempt.
-    await sendManualTopUpNotification(method, amount);
+    await sendManualTopUpNotification(method, amount, '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 'Hagaaty User', 'customer@example.com');
 };
 
   const handleWithdrawalRequest = async () => {
