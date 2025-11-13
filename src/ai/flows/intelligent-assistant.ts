@@ -84,7 +84,7 @@ const intelligentAssistantFlow = ai.defineFlow(
     }
 
     try {
-      // Explicitly pass the API key to the model
+      // Explicitly pass the API key to the model to override any other configuration issues.
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         throw new GenkitError({
@@ -116,7 +116,8 @@ const intelligentAssistantFlow = ai.defineFlow(
       return { response };
     } catch (e: any) {
       console.error('Error in intelligentAssistantFlow:', e);
-
+      
+      // Provide a more user-friendly and actionable error message
       const friendlyMessage = 
         'Sorry, I seem to be having trouble connecting to my brain right now. ' +
         'This is likely an issue with the Google AI API configuration. ' +
