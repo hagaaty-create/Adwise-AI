@@ -32,9 +32,6 @@ export default function FinancialsPage() {
           if (!currentTransactions.some(t => t.id === newTransaction.id)) {
               const updatedTransactions = [...currentTransactions, newTransaction];
               const updatedBalance = currentBalance !== null ? currentBalance + newTransaction.amount : newTransaction.amount;
-              // We should not remove the item here, otherwise a page refresh will lose the transaction.
-              // Instead, this should ideally be written to and read from the database.
-              // sessionStorage.removeItem('newTransaction'); 
               return { newBalance: updatedBalance, newTransactions: updatedTransactions };
           }
       }
@@ -55,7 +52,7 @@ export default function FinancialsPage() {
 
       } catch (e: any) {
         console.error("Failed to fetch financials:", e);
-        setError(e.message || "حدث خطأ غير معروف أثناء جلب البيانات.");
+        setError("Failed to connect to the database. Displaying local data. Your balance might not be up-to-date.");
         // Even if DB fails, check session storage for pending transactions
         const { newBalance, newTransactions } = processSessionTransaction(4.00, initialTransactionsData); // Start with default balance
         setBalance(newBalance);
@@ -93,12 +90,11 @@ export default function FinancialsPage() {
             <Card className="border-destructive">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-destructive">
-                        <AlertTriangle /> خطأ في الاتصال بقاعدة البيانات
+                        <AlertTriangle /> خطأ في الاتصال
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm">{error}</p>
-                    <p className="text-sm text-muted-foreground mt-2">يعرض التطبيق حاليًا بيانات بديلة. قد لا يتم حفظ الرصيد والمعاملات بشكل صحيح.</p>
                 </CardContent>
             </Card>
         )}

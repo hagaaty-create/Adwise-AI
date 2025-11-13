@@ -18,9 +18,6 @@ import { Ban, CircleDollarSign, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { toggleUserStatus, addUserBalance } from '@/lib/actions';
 import type { User } from '@/lib/db';
-import { useFormState } from 'react-dom';
-import { useFormStatus } from 'react-dom';
-
 
 export function UserControls({ user }: { user: User }) {
   const [amountToAdd, setAmountToAdd] = useState<number>(0);
@@ -43,7 +40,7 @@ export function UserControls({ user }: { user: User }) {
     try {
       await addUserBalance(user.id, amountToAdd);
       toast.success(`تمت إضافة ${amountToAdd.toFixed(2)}$ إلى رصيد المستخدم.`);
-      setAmountToAdd(0);
+      setAmountToAdd(0); // Reset input after adding
     } catch (error) {
       toast.error('فشل في إضافة الرصيد.');
     }
