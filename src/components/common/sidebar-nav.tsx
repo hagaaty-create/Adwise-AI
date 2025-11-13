@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   Megaphone,
   Bot,
-  CheckCircle,
   BrainCircuit,
   Wallet,
   Briefcase,
