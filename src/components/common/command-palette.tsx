@@ -14,6 +14,8 @@ import {
   Terminal,
   BarChart,
   Shield,
+  Newspaper,
+  BookOpen,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -30,25 +32,28 @@ import {
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 const navItems = [
-    { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/dashboard/create-ad', icon: Megaphone, label: 'Create Ad' },
-    { href: '/dashboard/campaigns', icon: BarChart, label: 'My Campaigns' },
-    { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
+    { href: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم' },
+    { href: '/dashboard/create-ad', icon: Megaphone, label: 'إنشاء إعلان' },
+    { href: '/dashboard/campaigns', icon: BarChart, label: 'حملاتي' },
+    { href: '/dashboard/financials', icon: Wallet, label: 'الماليات' },
+    { href: '/blog', icon: BookOpen, label: 'المدونة', isPublic: true },
 ];
 
 const adminNavItems = [
-    { href: '/dashboard/admin', icon: Shield, label: 'Admin Panel' },
-    { href: '/dashboard/admin/site-marketing', icon: BrainCircuit, label: 'Site Marketing' },
-    { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
+    { href: '/dashboard/admin', icon: Shield, label: 'لوحة المسؤول' },
+    { href: '/dashboard/admin/articles', icon: Newspaper, label: 'إدارة المقالات' },
+    { href: '/dashboard/admin/site-marketing', icon: BrainCircuit, label: 'تسويق الموقع' },
 ];
 
 const gitCommands = `git add .
@@ -79,8 +84,8 @@ export function CommandPalette() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Commands copied to clipboard!", {
-      description: "Now paste them into your terminal.",
+    toast.success("تم نسخ الأوامر!", {
+      description: "الآن الصقها في الطرفية (Terminal) لتشغيلها.",
     });
   };
 
@@ -95,23 +100,23 @@ export function CommandPalette() {
         onClick={() => setOpen(true)}
       >
         <Search className="mr-2 h-4 w-4" />
-        <span className="hidden lg:inline-flex">Search...</span>
-        <span className="inline-flex lg:hidden">Search...</span>
+        <span className="hidden lg:inline-flex">بحث...</span>
+        <span className="inline-flex lg:hidden">بحث...</span>
         <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type a command or search..." />
+        <CommandInput placeholder="اكتب أمراً أو ابحث..." />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Navigation">
+          <CommandEmpty>لم يتم العثور على نتائج.</CommandEmpty>
+          <CommandGroup heading="التنقل">
             {navItems.map((item) => (
               <CommandItem
                 key={item.href + item.label}
                 value={item.label}
                 onSelect={() => {
-                  runCommand(() => router.push(item.href));
+                  runCommand(() => item.isPublic ? window.open(item.href, '_blank') : router.push(item.href));
                 }}
               >
                 <item.icon className="mr-2 h-4 w-4" />
@@ -120,7 +125,7 @@ export function CommandPalette() {
             ))}
           </CommandGroup>
            <CommandSeparator />
-          <CommandGroup heading="Admin">
+          <CommandGroup heading="المسؤول">
             {adminNavItems.map((item) => (
                 <CommandItem
                 key={item.href}
@@ -135,7 +140,7 @@ export function CommandPalette() {
             ))}
           </CommandGroup>
           <CommandSeparator />
-           <CommandGroup heading="Actions">
+           <CommandGroup heading="الإجراءات">
             <CommandItem
               value="Publish"
               onSelect={() => {
@@ -143,7 +148,7 @@ export function CommandPalette() {
               }}
             >
               <UploadCloud className="mr-2 h-4 w-4" />
-              Publish Site Updates
+              نشر تحديثات الموقع
             </CommandItem>
           </CommandGroup>
         </CommandList>
@@ -152,10 +157,10 @@ export function CommandPalette() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Terminal /> How to Publish Your Updates
+              <Terminal /> كيفية نشر تحديثاتك
             </AlertDialogTitle>
             <AlertDialogDescription>
-              To publish your changes, copy the commands below and paste them into your terminal. This cannot be done from the browser.
+              لنشر التغييرات الخاصة بك، يجب نسخ الأوامر أدناه ولصقها في الطرفية (Terminal). **لا يمكن القيام بذلك من المتصفح.**
               <div className="mt-4 p-4 bg-muted rounded-lg font-mono text-sm text-foreground relative">
                 <pre>{gitCommands}</pre>
                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(gitCommands)}>
@@ -163,12 +168,12 @@ export function CommandPalette() {
                 </Button>
               </div>
                <p className="mt-4 text-xs text-muted-foreground">
-                Note: If you encounter an 'Authentication failed' error, you need to configure access permissions between this environment and your GitHub account first.
+                **ملاحظة هامة:** إذا واجهت خطأ 'Authentication failed' (فشل المصادقة) مرة أخرى، فهذا يعني أنك بحاجة إلى تكوين أذونات الوصول بين هذه البيئة وحسابك على GitHub أولاً.
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowPublishDialog(false)}>Got it</AlertDialogAction>
+            <AlertDialogAction onClick={() => setShowPublishDialog(false)}>فهمت</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
