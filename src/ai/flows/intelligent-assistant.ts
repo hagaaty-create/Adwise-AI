@@ -84,17 +84,19 @@ const intelligentAssistantFlow = ai.defineFlow(
     }
 
     try {
-      const model = googleAI.chat({
-        model: 'gemini-pro',
-        system: systemInstruction,
-      });
-
-      const conversationHistory = (history || []).map(msg => ({
+      const fullHistory = (history || []).map(msg => ({
         role: msg.role === 'user' ? ('user' as const) : ('model' as const),
-        parts: [{ text: msg.content }],
+        content: [{ text: msg.content }],
       }));
 
-      const result = await model.sendMessage(query, { history: conversationHistory });
+      const model = googleAI.model('gemini-pro');
+
+      const result = await ai.generate({
+        model,
+        system: systemInstruction,
+        prompt: [{ role: 'user' as const, content: [{ text: query }] }],
+        history: fullHistory,
+      });
 
       const response = result.text;
 
