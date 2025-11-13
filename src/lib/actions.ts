@@ -7,7 +7,7 @@ import { seed, type Transaction, type Withdrawal, type User, type Campaign, type
 import { Resend } from 'resend';
 
 // This should be in environment variables, but for demo purposes it's here.
-const resend = new Resend('re_123456789'); // Replace with a real key only in production env vars.
+const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789'); // Use env var or a placeholder
 
 const USER_ID = '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7'; // Hardcoded ID for 'hagaaty@gmail.com'
 
@@ -22,19 +22,6 @@ async function ensureDbSeeded() {
             throw error;
         }
     }
-}
-
-export async function getBalance() {
-  await ensureDbSeeded();
-  try {
-    const { rows } = await sql`SELECT balance FROM users WHERE id = ${USER_ID}`;
-    if (rows.length > 0) {
-      return parseFloat(rows[0].balance);
-    }
-  } catch (error) {
-    console.error('Failed to fetch balance:', error);
-  }
-  return 0.00;
 }
 
 export async function getFinancials() {
@@ -115,22 +102,25 @@ export async function requestWithdrawal(amount: number, phoneNumber: string) {
             SET referral_earnings = referral_earnings - ${parsedAmount}
             WHERE id = ${USER_ID}
         `;
-        await sql`
+        const { rows } = await sql`
             INSERT INTO withdrawals (user_id, user_name, amount, phone_number, status)
             VALUES (${USER_ID}, ${user.name}, ${parsedAmount}, ${parsedPhoneNumber}, 'pending')
+            RETURNING id;
         `;
         await sql`COMMIT`;
+        
+        const withdrawalId = rows[0].id;
 
         // Send email notification to admin
         try {
             await resend.emails.send({
                 from: 'Hagaaty <onboarding@resend.dev>', // Should be a configured domain
                 to: 'hagaaty@gmail.com',
-                subject: 'New Withdrawal Request',
+                subject: `New Withdrawal Request (#${withdrawalId.substring(0, 4)})`,
                 html: `
                     <h1>New Withdrawal Request</h1>
                     <p><strong>User:</strong> ${user.name} (${user.email})</p>
-                    <p><strong>Amount:</strong> ${parsedAmount.toFixed(2)}</p>
+                    <p><strong>Amount:</strong> $${parsedAmount.toFixed(2)}</p>
                     <p><strong>Vodafone Cash Number:</strong> ${parsedPhoneNumber}</p>
                     <p>Please process this request and mark it as completed in the admin panel.</p>
                 `,
@@ -215,14 +205,9 @@ export async function addUserBalance(userId: string, amount: number) {
   await ensureDbSeeded();
   const parsedAmount = z.number().parse(amount);
   try {
-    await sql`
-      UPDATE users
-      SET balance = balance + ${parsedAmount}
-      WHERE id = ${userId}
-    `;
-    revalidatePath('/dashboard/admin');
-    revalidatePath('/dashboard/financials');
-    revalidatePath('/dashboard');
+      const description = `Admin manual credit: $${parsedAmount.toFixed(2)}`;
+      await addTransaction(userId, parsedAmount, description);
+      revalidatePath('/dashboard/admin');
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to add user balance.');
@@ -243,6 +228,25 @@ export async function toggleCampaignStatus(campaignId: string, currentStatus: 'a
     console.error('Database Error:', error);
     throw new Error('Failed to toggle campaign status.');
   }
+}
+
+export async function createCampaign(values: { 
+    userId: string,
+    userName: string,
+    headline: string,
+}) {
+    await ensureDbSeeded();
+    const { userId, userName, headline } = values;
+    try {
+        await sql`
+            INSERT INTO campaigns (user_id, user_name, headline, status)
+            VALUES (${userId}, ${userName}, ${headline}, 'active')
+        `;
+        revalidatePath('/dashboard/admin');
+    } catch (error) {
+        console.error('Database Error: Failed to create campaign', error);
+        throw new Error('Failed to save campaign to database.');
+    }
 }
 
 
@@ -275,7 +279,12 @@ export async function saveArticle(articleData: z.infer<typeof ArticleSchema>) {
         await sql`
             INSERT INTO articles (title, content, html_content, keywords, slug, status)
             VALUES (${validatedData.title}, ${validatedData.content}, ${validatedData.html_content}, ${validatedData.keywords}, ${slug}, 'draft')
-            ON CONFLICT (slug) DO NOTHING;
+            ON CONFLICT (slug) DO UPDATE SET 
+                title = EXCLUDED.title,
+                content = EXCLUDED.content,
+                html_content = EXCLUDED.html_content,
+                keywords = EXCLUDED.keywords,
+                status = 'draft';
         `;
         revalidatePath('/dashboard/admin/articles');
         console.log('Article saved to database successfully.');
@@ -285,33 +294,33 @@ export async function saveArticle(articleData: z.infer<typeof ArticleSchema>) {
     }
 }
 
-export async function getArticles() {
+export async function getArticles(): Promise<Article[]> {
   await ensureDbSeeded();
   try {
-    const { rows } = await sql<Article>`SELECT id, title, slug, status, created_at FROM articles ORDER BY created_at DESC`;
-    return rows;
+    const { rows } = await sql`SELECT id, title, slug, status, created_at FROM articles ORDER BY created_at DESC`;
+    return rows as Article[];
   } catch (error) {
     console.error('Failed to fetch articles:', error);
     throw new Error('Failed to fetch articles.');
   }
 }
 
-export async function getPublishedArticles() {
+export async function getPublishedArticles(): Promise<Article[]> {
   await ensureDbSeeded();
   try {
-    const { rows } = await sql<Article>`SELECT title, slug, created_at, content FROM articles WHERE status = 'published' ORDER BY created_at DESC`;
-    return rows;
+    const { rows } = await sql`SELECT title, slug, created_at, content, html_content FROM articles WHERE status = 'published' ORDER BY created_at DESC`;
+    return rows as Article[];
   } catch (error) {
     console.error('Failed to fetch published articles:', error);
     throw new Error('Failed to fetch published articles.');
   }
 }
 
-export async function getArticleBySlug(slug: string) {
+export async function getArticleBySlug(slug: string): Promise<Article | null> {
   await ensureDbSeeded();
   try {
-    const { rows } = await sql<Article>`SELECT title, content, html_content, created_at FROM articles WHERE slug = ${slug} AND status = 'published'`;
-    return rows[0] || null;
+    const { rows } = await sql`SELECT title, content, html_content, created_at, slug FROM articles WHERE slug = ${slug} AND status = 'published'`;
+    return (rows[0] as Article) || null;
   } catch (error) {
     console.error(`Failed to fetch article by slug "${slug}":`, error);
     throw new Error('Failed to fetch article.');
@@ -321,9 +330,12 @@ export async function getArticleBySlug(slug: string) {
 export async function publishArticle(id: string) {
   await ensureDbSeeded();
   try {
-    await sql`UPDATE articles SET status = 'published' WHERE id = ${id}`;
+    const { rows } = await sql`UPDATE articles SET status = 'published' WHERE id = ${id} RETURNING slug`;
     revalidatePath('/dashboard/admin/articles');
     revalidatePath('/blog');
+    if (rows[0]?.slug) {
+        revalidatePath(`/blog/${rows[0].slug}`);
+    }
   } catch (error) {
     console.error(`Failed to publish article with id "${id}":`, error);
     throw new Error('Failed to publish article.');
@@ -335,6 +347,7 @@ export async function deleteArticle(id: string) {
   try {
     await sql`DELETE FROM articles WHERE id = ${id}`;
     revalidatePath('/dashboard/admin/articles');
+    revalidatePath('/blog');
   } catch (error) {
     console.error(`Failed to delete article with id "${id}":`, error);
     throw new Error('Failed to delete article.');

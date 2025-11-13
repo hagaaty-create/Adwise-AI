@@ -20,8 +20,9 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
         setBalance(data.balance);
         setReferralEarnings(data.referralEarnings);
       } catch (e) {
-        console.error("Failed to fetch balance, using default.", e);
+        console.error("Failed to fetch financials, using default.", e);
         setBalance(defaultBalance);
+        setReferralEarnings(0);
       }
       
       const savedCampaigns = JSON.parse(sessionStorage.getItem('userCampaigns') || '[]') as Campaign[];
@@ -36,12 +37,14 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
     fetchAllMetrics();
     
     // Listen for storage changes from other tabs to re-fetch all data
-    const handleStorageChange = () => {
+    const handleStorageChange = (event: StorageEvent) => {
         // A 'newTransaction' event is a generic signal that finances might have changed.
-        // A 'storage' event on 'userCampaigns' means campaign metrics changed.
-        if (sessionStorage.getItem('newTransaction') || localStorage.getItem('userCampaigns')) {
+        // A change to 'userCampaigns' means campaign metrics changed.
+        if (event.key === 'newTransaction' || event.key === 'userCampaigns') {
             fetchAllMetrics();
-            sessionStorage.removeItem('newTransaction'); // Clear the flag
+            if(event.key === 'newTransaction') {
+              sessionStorage.removeItem('newTransaction'); // Clear the flag
+            }
         }
     };
     
