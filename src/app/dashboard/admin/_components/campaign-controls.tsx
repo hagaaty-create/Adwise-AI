@@ -43,7 +43,7 @@ export function CampaignControls({ campaign }: { campaign: Campaign }) {
             {isPaused
               ? `سيؤدي هذا إلى إعادة تفعيل الحملة "${campaign.headline}".`
               : `سيؤدي هذا إلى إيقاف الحملة "${campaign.headline}" مؤقتًا.`}
-          </OSAlertDialogDescription>
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>إلغاء</AlertDialogCancel>
