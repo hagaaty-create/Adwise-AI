@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wallet, Gift, Copy, Loader2, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Wallet, Gift, Copy, Loader2, AlertTriangle, ExternalLink, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { getBalance, getTransactions, addTransaction } from '@/lib/actions';
 import type { Transaction } from '@/lib/db';
@@ -17,6 +17,7 @@ export default function FinancialsPage() {
   const binancePayId = "771625769";
   const usdtAddress = "TDGLKJE5GVpH923kqR677r9xfrzVsGJP";
   const bnbAddress = "0x6806f6aad1043c06153896d88807a1ebd90fec77";
+  const vodafoneCashNumber = "01015016267";
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,10 +119,11 @@ export default function FinancialsPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="binance-pay" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
                 <TabsTrigger value="binance-pay">Binance Pay</TabsTrigger>
                 <TabsTrigger value="usdt">USDT (TRC20)</TabsTrigger>
                 <TabsTrigger value="bnb">BNB (BEP20)</TabsTrigger>
+                <TabsTrigger value="vodafone-cash"><Phone className="h-4 w-4 mr-2"/>فودافون كاش</TabsTrigger>
               </TabsList>
               <TabsContent value="binance-pay" className="pt-6">
                 <div className="space-y-4">
@@ -186,6 +188,23 @@ export default function FinancialsPage() {
                     </span>
                    </div>
                    <p className="text-sm text-muted-foreground pt-2">بعد إتمام التحويل، يرجى التواصل مع الدعم الفني لتأكيد الإيداع وإضافة الرصيد إلى حسابك.</p>
+                </div>
+              </TabsContent>
+              <TabsContent value="vodafone-cash" className="pt-6">
+                <div className="space-y-4">
+                  <Label>رقم فودافون كاش للتحويل</Label>
+                  <div className="flex items-center space-x-2">
+                      <Input value={vodafoneCashNumber} readOnly dir="ltr" />
+                      <Button variant="outline" size="icon" onClick={() => copyToClipboard(vodafoneCashNumber, 'تم نسخ رقم فودافون كاش!')}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                  </div>
+                  <div className="flex items-start gap-2 text-primary">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-1" />
+                    <span className="text-xs text-muted-foreground">
+                      هام: بعد إتمام التحويل، يرجى التواصل مع الدعم الفني عبر الدردشة الحية أو تذاكر الدعم لتأكيد الإيداع وإضافة الرصيد إلى حسابك يدويًا.
+                    </span>
+                   </div>
                 </div>
               </TabsContent>
             </Tabs>
