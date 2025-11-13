@@ -8,10 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Wallet, Gift, Copy, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getBalance } from '@/lib/actions';
 
-// This is a placeholder for the API logic.
-// In a real project, this logic would live in `src/app/api/user-financials/route.ts`
-// For this prototype, we're mocking the server response within the component fetch.
 
 const initialTransactionsData = [
   { id: 'trx-001', date: new Date().toISOString().split('T')[0], description: 'Welcome Bonus', amount: 4.00, type: 'credit' as const },
@@ -49,23 +47,11 @@ export default function FinancialsPage() {
       setError(null);
       
       try {
-        // In a real app, this fetch would go to an actual API endpoint.
-        // For now, we simulate a failure to demonstrate the error handling.
-        // To simulate success, you would need to implement the API route.
-        const shouldSimulateError = true;
-        if (shouldSimulateError) {
-          throw new Error('فشل الاتصال بقاعدة البيانات. يرجى التحقق من إعدادات Vercel Postgres.');
-        }
-
-        // const response = await fetch(`/api/user-financials?email=ahmed.ali@example.com`);
-        // if (!response.ok) {
-        //   throw new Error('فشل الاتصال بقاعدة البيانات. يرجى التحقق من إعدادات Vercel Postgres.');
-        // }
-        // const data = await response.json();
+        const dbBalance = await getBalance();
         
-        // const { newBalance, newTransactions } = processSessionTransaction(data.balance, transactions);
-        // setBalance(newBalance);
-        // setTransactions(newTransactions);
+        const { newBalance, newTransactions } = processSessionTransaction(dbBalance, initialTransactionsData);
+        setBalance(newBalance);
+        setTransactions(newTransactions);
 
       } catch (e: any) {
         console.error("Failed to fetch financials:", e);
@@ -187,7 +173,7 @@ export default function FinancialsPage() {
             ) : (
               <>
                 <div className="text-2xl font-bold">${balance.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">يشمل 4.00$ مكافأة ترحيبية</p>
+                <p className="text-xs text-muted-foreground">الرصيد من قاعدة البيانات</p>
               </>
             )}
           </CardContent>

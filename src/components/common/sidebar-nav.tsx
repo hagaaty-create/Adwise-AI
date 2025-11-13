@@ -59,7 +59,7 @@ export function SidebarNav() {
   ];
   
   const adminNavItems = [
-      // { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel }, // Temporarily disabled
+      { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
   ];
 
   return (
