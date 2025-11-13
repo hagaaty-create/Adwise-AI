@@ -31,6 +31,22 @@ const AssistUserOutputSchema = z.object({
 });
 export type AssistUserOutput = z.infer<typeof AssistUserOutputSchema>;
 
+// Smart fallback system based on keywords
+function getFallbackResponse(query: string): string {
+    const lowerQuery = query.toLowerCase();
+    if (lowerQuery.includes('إنشاء إعلان') || lowerQuery.includes('create ad')) {
+        return "You can create a new Google Ad campaign on the 'Create Ad' page. You can use your $4 welcome bonus to get started. Would you like me to take you to the Create Ad page? [Link: /dashboard/create-ad]";
+    }
+    if (lowerQuery.includes('فلوس') || lowerQuery.includes('رصيد') || lowerQuery.includes('financials')) {
+        return "You can add funds and manage your balance on the 'Financials' page. You'll also find your referral link there to earn commissions. Would you like me to take you to the Financials page? [Link: /dashboard/financials]";
+    }
+    if (lowerQuery.includes('وكالة') || lowerQuery.includes('agency')) {
+        return "The Agency subscription offers unlimited ad accounts, protection against closures, and global targeting for just $50/year. Would you like me to take you to the Agency page? [Link: /dashboard/subscription]";
+    }
+    return "I'm having a little trouble connecting to my full capabilities right now, but I can still help! What would you like to do? You can try creating an ad or checking your financials.";
+}
+
+
 export async function assistUser(input: AssistUserInput): Promise<AssistUserOutput> {
   return intelligentAssistantFlow(input);
 }
@@ -85,10 +101,14 @@ const intelligentAssistantFlow = ai.defineFlow(
 
     try {
       const apiKey = process.env.GEMINI_API_KEY;
-      const model = googleAI.model('gemini-pro', apiKey ? { apiKey } : undefined);
+      if (!apiKey) {
+        // If no API key, immediately use the fallback.
+        console.log("No GEMINI_API_KEY found. Using fallback response.");
+        return { response: getFallbackResponse(query) };
+      }
+      
+      const model = googleAI.model('gemini-pro', { apiKey });
 
-      // Correctly build the history for the model.
-      // The Genkit history format requires a 'role' of 'model' for the assistant's responses.
       const historyForModel = (history || []).map(msg => ({
         role: msg.role === 'user' ? ('user' as const) : ('model' as const),
         content: [{ text: msg.content }],
@@ -104,19 +124,15 @@ const intelligentAssistantFlow = ai.defineFlow(
       const response = result.text;
       
       if (!response) {
-         throw new Error('AI model did not return a response.');
+         return { response: getFallbackResponse(query) };
       }
 
       return { response };
 
     } catch (e: any) {
-      console.error('Error in intelligentAssistantFlow. This is likely an API key or billing issue.', e);
-      // The error is now thrown with a more helpful message for the developer.
-      throw new GenkitError({
-        status: 'INTERNAL',
-        message:
-          'An error occurred while processing the request with the AI model. Please ensure your GEMINI_API_KEY is valid and your Google Cloud project has billing enabled.',
-      });
+      console.error('Error in intelligentAssistantFlow, using fallback. This is likely an API key or billing issue.', e.message);
+      // Fallback to a smart, predefined response system instead of throwing an error.
+      return { response: getFallbackResponse(query) };
     }
   }
 );
