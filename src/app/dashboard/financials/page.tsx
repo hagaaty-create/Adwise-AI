@@ -16,6 +16,7 @@ export default function FinancialsPage() {
   const referralLink = "https://hagaaty.com/ref/user123";
   const binancePayId = "771625769";
   const usdtAddress = "TDGLKJE5GVpH923kqR677r9xfrzVsGJP";
+  const bnbAddress = "0x6806f6aad1043c06153896d88807a1ebd90fec77";
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -117,9 +118,10 @@ export default function FinancialsPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="binance-pay" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="binance-pay">Binance Pay</TabsTrigger>
                 <TabsTrigger value="usdt">USDT (TRC20)</TabsTrigger>
+                <TabsTrigger value="bnb">BNB (BEP20)</TabsTrigger>
               </TabsList>
               <TabsContent value="binance-pay" className="pt-6">
                 <div className="space-y-4">
@@ -159,10 +161,30 @@ export default function FinancialsPage() {
                         <Copy className="h-4 w-4" />
                       </Button>
                   </div>
-                  <AlertTriangle className="h-4 w-4 inline-block mr-2 text-amber-500" />
-                  <span className="text-xs text-muted-foreground">
-                    تنبيه: أرسل فقط USDT على شبكة TRON (TRC20) إلى هذا العنوان. إرسال أي عملة أخرى أو على شبكة مختلفة قد يؤدي إلى فقدان أموالك.
-                  </span>
+                  <div className="flex items-start gap-2 text-amber-600 dark:text-amber-500">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-1" />
+                    <span className="text-xs text-muted-foreground">
+                      تنبيه: أرسل فقط USDT على شبكة TRON (TRC20) إلى هذا العنوان. إرسال أي عملة أخرى أو على شبكة مختلفة قد يؤدي إلى فقدان أموالك.
+                    </span>
+                  </div>
+                   <p className="text-sm text-muted-foreground pt-2">بعد إتمام التحويل، يرجى التواصل مع الدعم الفني لتأكيد الإيداع وإضافة الرصيد إلى حسابك.</p>
+                </div>
+              </TabsContent>
+              <TabsContent value="bnb" className="pt-6">
+                <div className="space-y-4">
+                  <Label>عنوان إيداع BNB (شبكة BEP20)</Label>
+                  <div className="flex items-center space-x-2">
+                      <Input value={bnbAddress} readOnly dir="ltr" />
+                      <Button variant="outline" size="icon" onClick={() => copyToClipboard(bnbAddress, 'تم نسخ عنوان BNB!')}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                  </div>
+                  <div className="flex items-start gap-2 text-amber-600 dark:text-amber-500">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-1" />
+                    <span className="text-xs text-muted-foreground">
+                      تنبيه: أرسل فقط BNB على شبكة Smart Chain (BEP20) إلى هذا العنوان. إرسال أي عملة أخرى أو على شبكة مختلفة قد يؤدي إلى فقدان أموالك.
+                    </span>
+                   </div>
                    <p className="text-sm text-muted-foreground pt-2">بعد إتمام التحويل، يرجى التواصل مع الدعم الفني لتأكيد الإيداع وإضافة الرصيد إلى حسابك.</p>
                 </div>
               </TabsContent>
