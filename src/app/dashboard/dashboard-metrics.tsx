@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wallet, Megaphone, Users, DollarSign } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { Campaign } from '../campaigns/page';
+import type { Campaign } from './campaigns/page';
 import { useLanguage } from '@/context/language-context';
 import { getBalance } from '@/lib/actions'; // We will call this client side
 
@@ -23,16 +23,12 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
         setBalance(defaultBalance);
       }
     }
-    
-    const handleStorageChange = () => {
-        // When a transaction happens, refetch the balance
-        if (sessionStorage.getItem('newTransaction')) {
-            fetchBalance();
-        }
-    };
-    
     fetchBalance();
     
+    // Also listen for storage events to update balance if changed elsewhere
+    const handleStorageChange = () => {
+        fetchBalance();
+    };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
 
@@ -45,7 +41,7 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
       const totalAdSpend = savedCampaigns.reduce((sum, campaign) => sum + campaign.adSpend, 0);
       setAdSpend(totalAdSpend);
 
-      const activeCount = savedCampaigns.filter(c => c.status === 'active' || c.status === 'review').length;
+      const activeCount = savedCampaigns.filter(c => c.status === 'active').length;
       setActiveCampaignsCount(activeCount);
     };
 
@@ -58,12 +54,7 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
     };
   }, []);
 
-  const activeCampaignsText = activeCampaignsCount === 1 
-    ? translations.dashboard.metrics.activeCampaigns.one 
-    : (activeCampaignsCount > 1 
-        ? `${activeCampaignsCount} campaigns are running` 
-        : translations.dashboard.metrics.activeCampaigns.none);
-
+  const activeCampaignsText = activeCampaignsCount === 1 ? translations.dashboard.metrics.activeCampaigns.one : (activeCampaignsCount > 1 ? `${activeCampaignsCount} campaigns are running` : translations.dashboard.metrics.activeCampaigns.none);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -9,10 +9,8 @@ import { useLanguage } from '@/context/language-context';
 export default function Dashboard() {
   const { translations } = useLanguage();
   
-  // The logic for fetching balance is now handled inside DashboardMetrics
-  // to better manage client-side state and updates. We can pass a static
-  // value or handle it inside the component. For simplicity, we removed the server-side
-  // getBalance() from this page component to make it a pure client component for i18n.
+  // The initialBalance is a fallback. The DashboardMetrics component will fetch the real-time
+  // balance from the database on the client-side.
   const initialBalance = 4.00;
 
   return (

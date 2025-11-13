@@ -1,19 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { createAutomatedAdCampaign, AutomatedAdCampaignOutput } from '@/ai/flows/automated-ad-creation';
+import { createAutomatedAdCampaign } from '@/ai/flows/automated-ad-creation';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Wand2, CheckCircle, Clock, BarChart2, DollarSign, Eye, MousePointerClick } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Loader2, Wand2 } from 'lucide-react';
+import { useLanguage } from '@/context/language-context';
 
 const formSchema = z.object({
   headline: z.string().min(10, { message: 'Headline must be at least 10 characters.' }),
@@ -27,29 +27,10 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export type CampaignStatus = 'pending' | 'review' | 'active' | 'finished';
-export interface CampaignMetrics {
-  adSpend: number;
-  impressions: number;
-  clicks: number;
-  status: CampaignStatus;
-}
-
-
-const platformIcons: { [key: string]: React.ReactNode } = {
-  Google: <svg role="img" viewBox="0 0 24 24" className="h-6 w-6"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.75 8.36,4.73 12.19,4.73C15.28,4.73 17.27,6.48 17.27,6.48L19.43,4.18C19.43,4.18 16.71,2.05 12.19,2.05C6.7,2.05 2.5,6.73 2.5,12C2.5,17.27 6.7,21.95 12.19,21.95C18.08,21.95 21.5,17.5 21.5,12.33C21.5,11.76 21.45,11.43 21.35,11.1Z"></path></svg>,
-};
-
 export default function CreateAdPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const { translations } = useLanguage();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [results, setResults] = useState<AutomatedAdCampaignOutput | null>(null);
-  const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>('pending');
-  const [adSpend, setAdSpend] = useState(0);
-  const [impressions, setImpressions] = useState(0);
-  const [clicks, setClicks] = useState(0);
-  const [campaignData, setCampaignData] = useState<FormData | null>(null);
-
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -64,93 +45,12 @@ export default function CreateAdPage() {
     },
   });
 
-  useEffect(() => {
-    // Simulate loading existing campaign data
-    const savedCampaignStatus = sessionStorage.getItem('campaignStatus') as CampaignStatus | null;
-    if (savedCampaignStatus && savedCampaignStatus !== 'pending') {
-      const savedResults = JSON.parse(sessionStorage.getItem('campaignResults') || 'null');
-      const savedData = JSON.parse(sessionStorage.getItem('campaignData') || 'null');
-      const savedMetrics = JSON.parse(sessionStorage.getItem('campaignMetrics') || 'null');
-
-      setResults(savedResults);
-      setCampaignData(savedData);
-      setCampaignStatus(savedCampaignStatus);
-      if (savedMetrics) {
-        setAdSpend(savedMetrics.adSpend);
-        setImpressions(savedMetrics.impressions);
-        setClicks(savedMetrics.clicks);
-      }
-    }
-    setIsLoading(false);
-  }, []);
-  
-  const updateGlobalMetrics = (metrics: CampaignMetrics) => {
-    sessionStorage.setItem('campaignMetrics', JSON.stringify(metrics));
-    window.dispatchEvent(new Event('storage'));
-  };
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-
-    if (campaignStatus === 'active' && results && campaignData) {
-        const campaignSummary = results.campaignSummaries[0];
-        const totalSpend = campaignSummary.estimatedCost;
-        const totalImpressions = campaignSummary.predictedReach;
-        const totalClicks = campaignSummary.predictedConversions;
-        const totalDurationSeconds = campaignData.campaignDurationDays * 24 * 60 * 60;
-        
-        let elapsedSeconds = parseFloat(sessionStorage.getItem('elapsedSeconds') || '0');
-
-        interval = setInterval(() => {
-            elapsedSeconds += 2; 
-            sessionStorage.setItem('elapsedSeconds', elapsedSeconds.toString());
-            
-            const progress = Math.min(elapsedSeconds / totalDurationSeconds, 1);
-            
-            const currentAdSpend = totalSpend * progress;
-            const currentImpressions = Math.floor(totalImpressions * progress);
-            const currentClicks = Math.floor(totalClicks * progress);
-
-            setAdSpend(currentAdSpend);
-            setImpressions(currentImpressions);
-            setClicks(currentClicks);
-            
-            const metrics = { adSpend: currentAdSpend, impressions: currentImpressions, clicks: currentClicks, status: 'active' as CampaignStatus };
-            updateGlobalMetrics(metrics);
-
-
-            if (progress >= 1) {
-                setCampaignStatus('finished');
-                sessionStorage.setItem('campaignStatus', 'finished');
-                updateGlobalMetrics({ adSpend: totalSpend, impressions: totalImpressions, clicks: totalClicks, status: 'finished' });
-                toast.success('Your campaign has finished!');
-                clearInterval(interval);
-            }
-        }, 2000);
-    }
-    
-    return () => {
-        if (interval) {
-            clearInterval(interval);
-        }
-    };
-  }, [campaignStatus, results, campaignData]);
-
-
   async function onSubmit(values: FormData) {
     setIsGenerating(true);
-    setResults(null);
-    setCampaignStatus('pending');
-    setAdSpend(0);
-    setImpressions(0);
-    setClicks(0);
-    sessionStorage.clear();
-    updateGlobalMetrics({ adSpend: 0, impressions: 0, clicks: 0, status: 'pending' });
-
-
     toast.info('AI is generating your Google Ad campaign...', {
         description: 'This may take a moment. Please wait.',
     });
+
     try {
       const result = await createAutomatedAdCampaign({
         adName: values.headline,
@@ -163,15 +63,27 @@ export default function CreateAdPage() {
         keywords: values.keywords,
         location: values.location,
       });
-      setResults(result);
-      setCampaignData(values);
-      setCampaignStatus('review');
       
-      sessionStorage.setItem('campaignResults', JSON.stringify(result));
-      sessionStorage.setItem('campaignData', JSON.stringify(values));
-      sessionStorage.setItem('campaignStatus', 'review');
-      sessionStorage.setItem('elapsedSeconds', '0');
-      // Set a transaction in session storage to be picked up by financials page
+      const newCampaign = {
+        id: `camp_${Date.now()}`,
+        headline: values.headline,
+        status: 'review',
+        adCopy: result.campaignSummaries[0].adCopy,
+        predictedReach: result.campaignSummaries[0].predictedReach,
+        predictedConversions: result.campaignSummaries[0].predictedConversions,
+        budget: values.budget,
+        duration: values.campaignDurationDays,
+        adSpend: 0,
+        impressions: 0,
+        clicks: 0,
+        startDate: new Date().toISOString(),
+      };
+
+      // Store in session storage to be picked up by the campaigns page
+      const existingCampaigns = JSON.parse(sessionStorage.getItem('userCampaigns') || '[]');
+      existingCampaigns.push(newCampaign);
+      sessionStorage.setItem('userCampaigns', JSON.stringify(existingCampaigns));
+
       const transaction = {
         id: `trx-${Date.now()}`,
         date: new Date().toISOString().split('T')[0],
@@ -180,65 +92,23 @@ export default function CreateAdPage() {
         type: 'debit',
       };
       sessionStorage.setItem('newTransaction', JSON.stringify(transaction));
+      window.dispatchEvent(new Event('storage')); // Notify other tabs/components
 
-
-      toast.success('Google Ad campaign generated successfully!');
+      toast.success('Google Ad campaign generated successfully!', {
+        description: 'Your campaign is now under review.'
+      });
       
-      setTimeout(() => {
-        setCampaignStatus('active');
-        sessionStorage.setItem('campaignStatus', 'active');
-        updateGlobalMetrics({ adSpend: 0, impressions: 0, clicks: 0, status: 'active' });
-        toast.success('Your campaign is now active and running!');
-      }, 10000);
+      router.push('/dashboard/campaigns');
 
     } catch (error) {
       console.error('Failed to create ad campaign:', error);
       toast.error('Failed to create ad campaign', {
         description: 'An unexpected error occurred. Please try again later.',
       });
-      setCampaignStatus('pending');
-      updateGlobalMetrics({ adSpend: 0, impressions: 0, clicks: 0, status: 'pending' });
     } finally {
       setIsGenerating(false);
     }
   }
-  
-  function handleCreateNewCampaign() {
-    setIsGenerating(false);
-    setResults(null);
-    setCampaignStatus('pending');
-    setCampaignData(null);
-    setAdSpend(0);
-    setImpressions(0);
-    setClicks(0);
-    sessionStorage.clear();
-    updateGlobalMetrics({ adSpend: 0, impressions: 0, clicks: 0, status: 'pending' });
-    form.reset();
-  }
-
-  const renderStatusBadge = () => {
-    switch (campaignStatus) {
-      case 'review':
-        return <Badge variant="secondary" className="animate-pulse"><Clock className="mr-2 h-4 w-4" />في المراجعة (تقريباً 10 ثوانٍ)</Badge>;
-      case 'active':
-        return <Badge className="bg-green-600 hover:bg-green-700"><CheckCircle className="mr-2 h-4 w-4" />نشطة</Badge>;
-      case 'finished':
-         return <Badge variant="outline">مكتملة</Badge>;
-      default:
-        return null;
-    }
-  };
-  
-  const hasCampaign = campaignStatus !== 'pending';
-
-  if (isLoading) {
-    return (
-        <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-    );
-  }
-
 
   return (
     <div className="grid gap-6">
@@ -259,7 +129,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>عنوان الإعلان</FormLabel>
                         <FormControl>
-                          <Input placeholder="مثال: مستقبل الإعلان بالذكاء الاصطناعي هنا" {...field} disabled={hasCampaign} />
+                          <Input placeholder="مثال: مستقبل الإعلان بالذكاء الاصطناعي هنا" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -272,7 +142,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>وصف الإعلان</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="صف ما تعلن عنه بالتفصيل." className="resize-none" rows={4} {...field} disabled={hasCampaign} />
+                          <Textarea placeholder="صف ما تعلن عنه بالتفصيل." className="resize-none" rows={4} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -285,7 +155,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>الكلمات المفتاحية</FormLabel>
                         <FormControl>
-                          <Input placeholder="مثال: تسويق ذكاء اصطناعي, إعلانات جوجل, saas" {...field} disabled={hasCampaign} />
+                          <Input placeholder="مثال: تسويق ذكاء اصطناعي, إعلانات جوجل, saas" {...field} />
                         </FormControl>
                         <FormDescription>كلمات مفتاحية مفصولة بفواصل للاستهداف.</FormDescription>
                         <FormMessage />
@@ -301,7 +171,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>الجمهور المستهدف</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="مثال: الشباب المحترفون الذين تتراوح أعمارهم بين 25-35 عامًا والمهتمون بالتكنولوجيا واللياقة البدنية." className="resize-none" rows={2} {...field} disabled={hasCampaign} />
+                          <Textarea placeholder="مثال: الشباب المحترفون الذين تتراوح أعمارهم بين 25-35 عامًا والمهتمون بالتكنولوجيا واللياقة البدنية." className="resize-none" rows={2} {...field} />
                         </FormControl>
                          <FormMessage />
                       </FormItem>
@@ -314,7 +184,7 @@ export default function CreateAdPage() {
                       <FormItem>
                         <FormLabel>الموقع</FormLabel>
                         <FormControl>
-                          <Input placeholder="مثال: مصر, القاهرة" {...field} disabled={hasCampaign} />
+                          <Input placeholder="مثال: مصر, القاهرة" {...field} />
                         </FormControl>
                          <FormMessage />
                       </FormItem>
@@ -328,7 +198,7 @@ export default function CreateAdPage() {
                         <FormItem>
                           <FormLabel>الميزانية ($)</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} disabled={hasCampaign} />
+                            <Input type="number" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -341,7 +211,7 @@ export default function CreateAdPage() {
                         <FormItem>
                           <FormLabel>المدة (بالأيام)</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} disabled={hasCampaign} />
+                            <Input type="number" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -352,78 +222,15 @@ export default function CreateAdPage() {
               </div>
               
               <div className="flex justify-start pt-4">
-                 {!hasCampaign ? (
-                    <Button type="submit" disabled={isGenerating}>
-                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                        تفعيل الحملة بمكافأة 4$
-                    </Button>
-                  ) : (
-                      <Button variant="destructive" onClick={handleCreateNewCampaign}>
-                         <Wand2 className="mr-2 h-4 w-4" /> إنشاء حملة جديدة
-                      </Button>
-                  )}
+                <Button type="submit" disabled={isGenerating}>
+                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    تفعيل الحملة بمكافأة 4$
+                </Button>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
-      
-      {hasCampaign && results && campaignData && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                    <BarChart2 />
-                    أداء الحملة المباشر
-                </CardTitle>
-                {renderStatusBadge()}
-            </div>
-            <CardDescription>{campaignData.headline}</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm font-medium flex items-center justify-center gap-1"><DollarSign className="h-4 w-4"/> المنفق</p>
-                      <p className="text-2xl font-bold">${adSpend.toFixed(2)}</p>
-                  </div>
-                   <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm font-medium flex items-center justify-center gap-1"><Eye className="h-4 w-4"/> مرات الظهور</p>
-                      <p className="text-2xl font-bold">{impressions.toLocaleString()}</p>
-                  </div>
-                  <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm font-medium flex items-center justify-center gap-1"><MousePointerClick className="h-4 w-4"/> النقرات</p>
-                      <p className="text-2xl font-bold">{clicks.toLocaleString()}</p>
-                  </div>
-                  <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm font-medium">تكلفة النقرة</p>
-                      <p className="text-2xl font-bold">${clicks > 0 ? (adSpend / clicks).toFixed(2) : '0.00'}</p>
-                  </div>
-              </div>
-            
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    {platformIcons.Google}
-                    تفاصيل الإعلان المُنشأة بواسطة AI
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold mb-2">نص الإعلان</h4>
-                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">{results.campaignSummaries[0].adCopy}</p>
-                  </div>
-                   <div>
-                    <h4 className="font-semibold mb-2">الكلمات المفتاحية المستهدفة</h4>
-                    <div className="flex flex-wrap gap-2">
-                        {campaignData.keywords.split(',').map((kw, i) => <Badge key={i} variant="outline">{kw.trim()}</Badge>)}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
