@@ -37,14 +37,24 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
     
     // Listen for storage changes from other tabs to re-fetch all data
     const handleStorageChange = () => {
-        if (sessionStorage.getItem('newTransaction')) {
+        // A 'newTransaction' event is a generic signal that finances might have changed.
+        // A 'storage' event on 'userCampaigns' means campaign metrics changed.
+        if (sessionStorage.getItem('newTransaction') || localStorage.getItem('userCampaigns')) {
             fetchAllMetrics();
-            sessionStorage.removeItem('newTransaction');
+            sessionStorage.removeItem('newTransaction'); // Clear the flag
         }
     };
     
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+
+    // Also listen for a custom event for campaign updates to be more robust
+    const campaignUpdateHandler = () => fetchAllMetrics();
+    window.addEventListener('campaignUpdate', campaignUpdateHandler);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('campaignUpdate', campaignUpdateHandler);
+    }
 
   }, [defaultBalance]);
 
