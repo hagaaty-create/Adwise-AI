@@ -79,7 +79,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-inter), sans-serif;
+    @apply bg-background text-foreground font-body;
   }
 }

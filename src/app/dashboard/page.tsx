@@ -1,101 +1,32 @@
-'use client';
+'use server';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Wallet, Megaphone, Users, DollarSign, LineChart } from 'lucide-react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { useEffect, useState } from 'react';
-import type { CampaignStatus, CampaignMetrics } from './create-ad/page';
+import { sql } from '@vercel/postgres';
+import { DashboardChart } from './_components/dashboard-chart';
+import { DashboardMetrics } from './_components/dashboard-metrics';
 
-
-export default function Dashboard() {
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [metrics, setMetrics] = useState<CampaignMetrics>({ adSpend: 0, impressions: 0, clicks: 0, status: 'pending' });
-  const [hasActiveCampaign, setHasActiveCampaign] = useState(false);
-
-  useEffect(() => {
-    // We need to wrap this in useEffect to avoid hydration errors
-    // because Math.random() produces different values on server and client.
-    setChartData([
-      { name: 'Jan', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Feb', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Mar', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Apr', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'May', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Jun', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Jul', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Aug', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Sep', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Oct', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Nov', total: Math.floor(Math.random() * 5000) + 1000 },
-      { name: 'Dec', total: Math.floor(Math.random() * 5000) + 1000 },
-    ]);
-  }, []);
-
-  const updateMetrics = () => {
-    const savedMetrics = JSON.parse(sessionStorage.getItem('campaignMetrics') || 'null');
-    const campaignStatus = sessionStorage.getItem('campaignStatus') as CampaignStatus | null;
-    
-    if (savedMetrics) {
-      setMetrics(savedMetrics);
+async function getBalance() {
+  try {
+    const { rows } = await sql`SELECT balance FROM users WHERE email = 'ahmed.ali@example.com'`;
+    if (rows.length > 0) {
+      // The balance is returned as a string from the DB, so we parse it.
+      return parseFloat(rows[0].balance);
     }
-    setHasActiveCampaign(campaignStatus === 'active' || campaignStatus === 'review');
-  };
+  } catch (error) {
+    console.error('Failed to fetch balance:', error);
+    // Return the default welcome bonus if the DB query fails for any reason
+  }
+  return 4.00;
+}
 
-  useEffect(() => {
-    updateMetrics();
 
-    window.addEventListener('storage', updateMetrics);
-    return () => {
-      window.removeEventListener('storage', updateMetrics);
-    };
-  }, []);
-
-  const activeCampaignsCount = hasActiveCampaign ? 1 : 0;
-  const activeCampaignsText = hasActiveCampaign ? '1 campaign is currently running' : 'No active campaigns';
-
+export default async function Dashboard() {
+  const balance = await getBalance();
+  
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$4.00</div>
-            <p className="text-xs text-muted-foreground">Includes $4.00 welcome bonus</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
-            <Megaphone className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeCampaignsCount}</div>
-            <p className="text-xs text-muted-foreground">{activeCampaignsText}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Referral Earnings</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$0.00</div>
-            <p className="text-xs text-muted-foreground">From 0 referrals</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${metrics.adSpend.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Across all campaigns</p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardMetrics initialBalance={balance} />
       <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -107,25 +38,7 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-           {chartData.length > 0 && <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={chartData}>
-                <XAxis
-                  dataKey="name"
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => `$${value}`}
-                />
-                <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>}
+            <DashboardChart />
           </CardContent>
         </Card>
     </div>

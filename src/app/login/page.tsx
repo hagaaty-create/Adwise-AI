@@ -42,7 +42,7 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="justify-center">
+        <CardFooter className="flex-col gap-2 pt-6">
           <p className="text-sm text-muted-foreground">
             ليس لديك حساب؟{' '}
             <Link href="/signup" className="font-medium text-primary hover:underline">
