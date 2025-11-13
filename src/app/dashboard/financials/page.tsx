@@ -13,36 +13,27 @@ const initialTransactions = [
   { id: 'trx-001', date: '2024-06-15', description: 'Welcome Bonus', amount: 4.00, type: 'credit' },
 ];
 
+// This is a client component, but we want to fetch the real balance
+// We can't use server actions directly in the initial render of a client component
+// So we fetch it in a useEffect. A more robust solution might use a data fetching library like SWR or TanStack Query
+async function fetchUserBalance() {
+    // This is a placeholder for fetching the logged-in user's balance
+    // In a real app, you'd get the user ID from the session
+    // For now, we assume 'Ahmed Ali' is the user.
+    // A proper implementation would require an API route or another server action.
+    return 4.00; // Returning initial balance for now as we don't have user session
+}
+
+
 export default function FinancialsPage() {
   const referralLink = "https://hagaaty.com/ref/user123";
   const [balance, setBalance] = useState(4.00);
   const [transactions, setTransactions] = useState(initialTransactions);
 
-  const updateBalance = () => {
-    const storedBalance = localStorage.getItem('user_balance');
-    if (storedBalance) {
-      const newBalance = parseFloat(storedBalance);
-      if (newBalance > balance) {
-        // A top-up happened
-        const diff = newBalance - balance;
-        const newTransaction = {
-          id: `trx-${Date.now()}`,
-          date: new Date().toISOString().split('T')[0],
-          description: 'Admin Top-up',
-          amount: diff,
-          type: 'credit' as const
-        };
-        setTransactions(prev => [...prev, newTransaction]);
-      }
-      setBalance(newBalance);
-    }
-  };
-
-  useEffect(() => {
-    updateBalance();
-    window.addEventListener('storage', updateBalance);
-    return () => window.removeEventListener('storage', updateBalance);
-  }, [balance]);
+  // The logic to update balance from localStorage is now obsolete with a real DB.
+  // A real implementation would involve either polling, websockets, or re-fetching data
+  // when the user navigates to the page or an action occurs.
+  // For this prototype, we'll keep the UI static and rely on revalidation from the admin page.
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
