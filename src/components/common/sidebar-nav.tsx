@@ -136,10 +136,10 @@ export function SidebarNav() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={translations.sidebar.support}>
-                <a href="mailto:hagaaty@gmail.com">
+                <Link href="/dashboard/support">
                   <LifeBuoy />
                   <span>{translations.sidebar.support}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>

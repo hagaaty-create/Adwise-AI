@@ -57,7 +57,7 @@ export const translations = {
       agency: 'الوكالة',
       adminPanel: 'لوحة المسؤول',
       settings: 'الإعدادات',
-      support: 'الدعم',
+      support: 'الدعم الفني',
     },
     dashboard: {
       metrics: {

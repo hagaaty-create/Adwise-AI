@@ -24,7 +24,7 @@ const MOCK_USER: User = {
     name: 'Hagaaty Admin',
     email: 'hagaaty@gmail.com',
     balance: 4.00,
-    referral_earnings: 0.00, // Corrected from 25
+    referral_earnings: 0.00,
     status: 'active'
 };
 
@@ -124,30 +124,90 @@ export async function requestWithdrawal(amount: number, phoneNumber: string) {
     revalidatePath('/dashboard/admin');
 }
 
-export async function sendManualTopUpNotification(method: string) {
+export async function sendManualTopUpNotification(method: string, amount: number, userId: string, userName: string, userEmail: string) {
     if (!resend) {
         console.warn("Resend is not configured. Skipping email notification.");
         return;
     }
 
-    // In a real app, you'd get the current user's details.
-    const user = MOCK_USER; 
-    
+    // This creates a unique token for the confirmation link
+    const confirmationToken = `${userId}-${amount}-${Date.now()}`;
+
+    // For a real app, this URL should point to a deployed API route.
+    // For this simulation, we'll just log it. The functionality is illustrative.
+    const confirmationUrl = `https://your-app-domain.vercel.app/api/confirm-payment?token=${confirmationToken}`;
+
     try {
         await resend.emails.send({
             from: `Hagaaty <noreply@${process.env.RESEND_DOMAIN || 'resend.dev'}>`,
             to: ADMIN_EMAIL,
-            subject: `Manual Top-Up Proof Received (${method})`,
+            subject: `Manual Top-Up Action Required: $${amount} via ${method}`,
             html: `
-                <h1>Manual Top-Up Notification</h1>
-                <p>User <strong>${user.name} (${user.email})</strong> has indicated they have sent a manual payment via <strong>${method}</strong>.</p>
-                <p>Please verify the payment and credit their account from the admin dashboard if the payment is confirmed.</p>
-                <p>This is just a notification. The user has been instructed to send proof to your support email.</p>
+                <h1>Manual Top-Up Awaiting Confirmation</h1>
+                <p>User <strong>${userName} (${userEmail})</strong> has reported a manual payment.</p>
+                <ul>
+                    <li>Amount: <strong>$${amount.toFixed(2)}</strong></li>
+                    <li>Method: <strong>${method}</strong></li>
+                </ul>
+                <p>After you have verified the payment from your end (e.g., in your Vodafone Cash or Binance account), click the button below to credit the user's account automatically.</p>
+                <a href="${confirmationUrl}" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Confirm & Credit $${amount.toFixed(2)}</a>
+                <p style="font-size: 12px; margin-top: 20px;">If the button doesn't work, copy and paste this link into your browser: ${confirmationUrl}</p>
+                <p style="font-size: 12px;">This is a simulated action. In a real app, clicking the link would trigger a secure API endpoint to credit the user.</p>
             `,
         });
-        console.log("SIMULATING: Manual top-up notification email sent to admin.");
+        console.log("SIMULATING: Manual top-up notification email with confirmation link sent to admin.");
     } catch (error) {
         console.error("Failed to send manual top-up notification email:", error);
+        throw new Error("Could not send notification email.");
+    }
+}
+
+
+const supportTicketSchema = z.object({
+  subject: z.string(),
+  message: z.string(),
+  userName: z.string(),
+  userEmail: z.string().email(),
+});
+
+export async function sendSupportTicket(data: z.infer<typeof supportTicketSchema>) {
+    const { subject, message, userName, userEmail } = supportTicketSchema.parse(data);
+
+    if (!resend) {
+        console.warn("Resend is not configured. Simulating support ticket email.");
+        await delay(500);
+        console.log(`\n--- SIMULATED SUPPORT EMAIL ---
+        To: ${ADMIN_EMAIL}
+        Reply-To: ${userEmail}
+        Subject: [Support Ticket] ${subject}
+        
+        From: ${userName} (${userEmail})
+        
+        Message:
+        ${message}
+        -----------------------\n`);
+        return { success: true };
+    }
+
+    try {
+        await resend.emails.send({
+            from: `Hagaaty Support <support@${process.env.RESEND_DOMAIN || 'resend.dev'}>`,
+            to: ADMIN_EMAIL,
+            reply_to: userEmail,
+            subject: `[Support Ticket] ${subject}`,
+            html: `
+                <h1>New Support Ticket</h1>
+                <p><strong>From:</strong> ${userName} (${userEmail})</p>
+                <p><strong>Subject:</strong> ${subject}</p>
+                <hr>
+                <p><strong>Message:</strong></p>
+                <p style="white-space: pre-wrap;">${message}</p>
+            `,
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to send support ticket email:", error);
+        throw new Error("Could not send support ticket.");
     }
 }
 
@@ -206,7 +266,7 @@ export async function addUserBalance(userId: string, amount: number) {
                     <h1>Balance Update</h1>
                     <p>Hello ${user.name},</p>
                     <p>Your account has been credited with <strong>$${amount.toFixed(2)}</strong>.</p>
-                    <p>Your new balance is <strong>$${user.balance.toFixed(2)}</strong>.</p>
+                    <p>Your new balance is <strong>$${(user.balance).toFixed(2)}</strong>.</p>
                     <p>Thank you for using Hagaaty!</p>
                 `
             });
@@ -300,5 +360,3 @@ export async function deleteArticle(id: string) {
   revalidatePath('/dashboard/admin/articles');
   revalidatePath('/blog');
 }
-
-    
