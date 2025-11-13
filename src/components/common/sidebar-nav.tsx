@@ -68,9 +68,14 @@ export function SidebarNav() {
         <SidebarMenu>
           {navItems.map((item) => {
              // Special case for Marketing AI to activate Create Ad link
-             const isActive = item.label === 'Create Ad' 
-             ? (pathname === item.href || pathname === '/dashboard/create-ad')
+             const isActive = (item.label === 'Create Ad' || item.label === 'Marketing AI')
+             ? (pathname === '/dashboard/create-ad')
              : pathname === item.href;
+
+            // Hide "Marketing AI" if it's in the list, as it's merged with "Create Ad"
+            if (item.label === 'Marketing AI') {
+                return null;
+            }
 
             return (
               <SidebarMenuItem key={item.href + item.label}>

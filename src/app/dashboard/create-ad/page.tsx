@@ -219,9 +219,9 @@ export default function CreateAdPage() {
   const renderStatusBadge = () => {
     switch (campaignStatus) {
       case 'review':
-        return <Badge variant="secondary" className="animate-pulse"><Clock className="ml-2 h-4 w-4" />في المراجعة (تقريباً 10 ثوانٍ)</Badge>;
+        return <Badge variant="secondary" className="animate-pulse"><Clock className="mr-2 h-4 w-4" />في المراجعة (تقريباً 10 ثوانٍ)</Badge>;
       case 'active':
-        return <Badge className="bg-green-600 hover:bg-green-700"><CheckCircle className="ml-2 h-4 w-4" />نشطة</Badge>;
+        return <Badge className="bg-green-600 hover:bg-green-700"><CheckCircle className="mr-2 h-4 w-4" />نشطة</Badge>;
       case 'finished':
          return <Badge variant="outline">مكتملة</Badge>;
       default:
@@ -354,12 +354,12 @@ export default function CreateAdPage() {
               <div className="flex justify-start pt-4">
                  {!hasCampaign ? (
                     <Button type="submit" disabled={isGenerating}>
-                        {isGenerating ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Wand2 className="ml-2 h-4 w-4" />}
+                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                         تفعيل الحملة بمكافأة 4$
                     </Button>
                   ) : (
                       <Button variant="destructive" onClick={handleCreateNewCampaign}>
-                         <Wand2 className="ml-2 h-4 w-4" /> إنشاء حملة جديدة
+                         <Wand2 className="mr-2 h-4 w-4" /> إنشاء حملة جديدة
                       </Button>
                   )}
               </div>

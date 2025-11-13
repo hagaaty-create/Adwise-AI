@@ -31,18 +31,18 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2 text-right">
               <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input id="email" type="email" placeholder="name@example.com" required />
+              <Input id="email" type="email" placeholder="name@example.com" required dir="ltr" />
             </div>
             <div className="space-y-2 text-right">
               <Label htmlFor="password">كلمة المرور</Label>
-              <Input id="password" type="password" required />
+              <Input id="password" type="password" required dir="ltr" />
             </div>
             <Button type="submit" className="w-full">
               تسجيل الدخول
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex-col gap-2 pt-6">
+        <CardFooter className="flex-col items-center justify-center gap-2 pt-6">
           <p className="text-sm text-muted-foreground">
             ليس لديك حساب؟{' '}
             <Link href="/signup" className="font-medium text-primary hover:underline">

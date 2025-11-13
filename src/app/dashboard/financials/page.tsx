@@ -9,6 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Wallet, Gift, Copy, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
+// This is a placeholder for the API logic.
+// In a real project, this logic would live in `src/app/api/user-financials/route.ts`
+// For this prototype, we're mocking the server response within the component fetch.
+
 const initialTransactionsData = [
   { id: 'trx-001', date: new Date().toISOString().split('T')[0], description: 'Welcome Bonus', amount: 4.00, type: 'credit' as const },
 ];
@@ -21,6 +25,7 @@ export default function FinancialsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactionsData);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [topUpAmount, setTopUpAmount] = useState('');
 
   const processSessionTransaction = (currentBalance: number | null, currentTransactions: Transaction[]): { newBalance: number | null, newTransactions: Transaction[] } => {
       const newTransactionStr = sessionStorage.getItem('newTransaction');
@@ -29,7 +34,9 @@ export default function FinancialsPage() {
           if (!currentTransactions.some(t => t.id === newTransaction.id)) {
               const updatedTransactions = [...currentTransactions, newTransaction];
               const updatedBalance = currentBalance !== null ? currentBalance + newTransaction.amount : newTransaction.amount;
-              sessionStorage.removeItem('newTransaction');
+              // We should not remove the item here, otherwise a page refresh will lose the transaction.
+              // Instead, this should ideally be written to and read from the database.
+              // sessionStorage.removeItem('newTransaction'); 
               return { newBalance: updatedBalance, newTransactions: updatedTransactions };
           }
       }
@@ -42,19 +49,27 @@ export default function FinancialsPage() {
       setError(null);
       
       try {
-        const response = await fetch(`/api/user-financials?email=ahmed.ali@example.com`);
-        if (!response.ok) {
-          throw new Error('Failed to connect to the database. Please check configuration.');
+        // In a real app, this fetch would go to an actual API endpoint.
+        // For now, we simulate a failure to demonstrate the error handling.
+        // To simulate success, you would need to implement the API route.
+        const shouldSimulateError = true;
+        if (shouldSimulateError) {
+          throw new Error('فشل الاتصال بقاعدة البيانات. يرجى التحقق من إعدادات Vercel Postgres.');
         }
-        const data = await response.json();
+
+        // const response = await fetch(`/api/user-financials?email=ahmed.ali@example.com`);
+        // if (!response.ok) {
+        //   throw new Error('فشل الاتصال بقاعدة البيانات. يرجى التحقق من إعدادات Vercel Postgres.');
+        // }
+        // const data = await response.json();
         
-        const { newBalance, newTransactions } = processSessionTransaction(data.balance, transactions);
-        setBalance(newBalance);
-        setTransactions(newTransactions);
+        // const { newBalance, newTransactions } = processSessionTransaction(data.balance, transactions);
+        // setBalance(newBalance);
+        // setTransactions(newTransactions);
 
       } catch (e: any) {
         console.error("Failed to fetch financials:", e);
-        setError(e.message || "An unknown error occurred while fetching data.");
+        setError(e.message || "حدث خطأ غير معروف أثناء جلب البيانات.");
         // Even if DB fails, check session storage for pending transactions
         const { newBalance, newTransactions } = processSessionTransaction(4.00, initialTransactionsData); // Start with default balance
         setBalance(newBalance);
@@ -69,8 +84,19 @@ export default function FinancialsPage() {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
-    toast.success("Copied to clipboard!", {
-      description: "You can now share your referral link.",
+    toast.success("تم النسخ إلى الحافظة!", {
+      description: "يمكنك الآن مشاركة رابط الإحالة الخاص بك.",
+    });
+  };
+
+  const handleTopUp = () => {
+    const amount = parseFloat(topUpAmount);
+    if (!amount || amount <= 0) {
+      toast.error('الرجاء إدخال مبلغ صحيح.');
+      return;
+    }
+    toast.info('سيتم توجيهك للدفع', {
+      description: `جارٍ معالجة إضافة ${amount.toFixed(2)}$ إلى رصيدك.`,
     });
   };
 
@@ -81,40 +107,46 @@ export default function FinancialsPage() {
             <Card className="border-destructive">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-destructive">
-                        <AlertTriangle /> Database Connection Error
+                        <AlertTriangle /> خطأ في الاتصال بقاعدة البيانات
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-sm text-destructive-foreground">{error}</p>
-                    <p className="text-sm text-muted-foreground mt-2">Please ensure the PostgreSQL database is correctly configured in your Vercel project settings.</p>
+                    <p className="text-sm">{error}</p>
+                    <p className="text-sm text-muted-foreground mt-2">يعرض التطبيق حاليًا بيانات بديلة. قد لا يتم حفظ الرصيد والمعاملات بشكل صحيح.</p>
                 </CardContent>
             </Card>
         )}
         <Card>
           <CardHeader>
-            <CardTitle>Top Up Balance</CardTitle>
-            <CardDescription>Add funds to your account. Enjoy a 20% discount on every top-up!</CardDescription>
+            <CardTitle>شحن الرصيد</CardTitle>
+            <CardDescription>أضف أموالاً إلى حسابك. استمتع بخصم 20٪ على كل عملية شحن!</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount ($)</Label>
-              <Input id="amount" type="number" placeholder="50.00" />
+              <Label htmlFor="amount">المبلغ ($)</Label>
+              <Input 
+                id="amount" 
+                type="number" 
+                placeholder="50.00" 
+                value={topUpAmount}
+                onChange={(e) => setTopUpAmount(e.target.value)}
+              />
             </div>
-            <p className="text-sm text-muted-foreground">Payment methods: Binance (Manual), E-Wallets (Vodafone Cash, etc.)</p>
-            <Button>Proceed to Payment</Button>
+            <p className="text-sm text-muted-foreground">طرق الدفع: Binance (يدوي) ، المحافظ الإلكترونية (فودافون كاش ، إلخ)</p>
+            <Button onClick={handleTopUp}>متابعة للدفع</Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Transaction History</CardTitle>
+            <CardTitle>سجل المعاملات</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>التاريخ</TableHead>
+                  <TableHead>الوصف</TableHead>
+                  <TableHead className="text-right">المبلغ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -125,12 +157,12 @@ export default function FinancialsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  transactions.map((transaction) => (
+                  transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((transaction) => (
                     <TableRow key={transaction.id}>
                       <TableCell>{transaction.date}</TableCell>
                       <TableCell className="font-medium">{transaction.description}</TableCell>
                       <TableCell className={`text-right font-semibold ${transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
-                        {transaction.type === 'credit' ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
+                        {transaction.type === 'credit' ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))
@@ -144,7 +176,7 @@ export default function FinancialsPage() {
       <div className="space-y-6">
         <Card className="sticky top-20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
+            <CardTitle className="text-sm font-medium">الرصيد الحالي</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -155,15 +187,15 @@ export default function FinancialsPage() {
             ) : (
               <>
                 <div className="text-2xl font-bold">${balance.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">Includes $4.00 welcome bonus</p>
+                <p className="text-xs text-muted-foreground">يشمل 4.00$ مكافأة ترحيبية</p>
               </>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Gift /> Referral Program</CardTitle>
-            <CardDescription>Earn a 20% commission from every top-up made by users who sign up through your link.</CardDescription>
+            <CardTitle className="flex items-center gap-2"><Gift /> برنامج الإحالة</CardTitle>
+            <CardDescription>اربح عمولة 20٪ من كل عملية شحن يقوم بها المستخدمون الذين يسجلون من خلال الرابط الخاص بك.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
               <div className="flex items-center space-x-2">
@@ -177,31 +209,4 @@ export default function FinancialsPage() {
       </div>
     </div>
   );
-}
-
-// We need to create an API route to fetch the balance for the client component.
-// This would ideally be in `src/app/api/user-financials/route.ts`
-// but since we cannot create new files, we'll mock the fetch logic.
-
-// This is a placeholder for the API logic.
-// In a real project, create a file at `src/app/api/user-financials/route.ts`
-async function handler(req: Request) {
-    const { searchParams } = new URL(req.url);
-    const email = searchParams.get('email');
-
-    if (!email) {
-        return new Response(JSON.stringify({ message: 'Email is required' }), { status: 400 });
-    }
-
-    try {
-        const { sql } = await import('@vercel/postgres');
-        const { rows } = await sql`SELECT balance FROM users WHERE email = ${email}`;
-        if (rows.length > 0) {
-            return new Response(JSON.stringify({ balance: parseFloat(rows[0].balance) }), { status: 200 });
-        } else {
-            return new Response(JSON.stringify({ message: 'User not found' }), { status: 404 });
-        }
-    } catch (error) {
-        return new Response(JSON.stringify({ message: 'Internal Server Error' }), { status: 500 });
-    }
 }

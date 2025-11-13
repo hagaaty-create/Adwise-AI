@@ -25,23 +25,23 @@ export function UserControls({ user }: { user: User }) {
   const handleToggleStatus = async () => {
     try {
       await toggleUserStatus(user.id, user.status);
-      toast.success('User status updated successfully.');
+      toast.success('تم تحديث حالة المستخدم بنجاح.');
     } catch (error) {
-      toast.error('Failed to update user status.');
+      toast.error('فشل تحديث حالة المستخدم.');
     }
   };
 
   const handleAddBalance = async () => {
     if (amountToAdd <= 0) {
-      toast.error("Please enter a valid amount.");
+      toast.error("الرجاء إدخال مبلغ صحيح.");
       return;
     }
     try {
       await addUserBalance(user.id, amountToAdd);
-      toast.success(`$${amountToAdd.toFixed(2)} added to user's balance.`);
+      toast.success(`تمت إضافة ${amountToAdd.toFixed(2)}$ إلى رصيد المستخدم.`);
       setAmountToAdd(0);
     } catch (error) {
-      toast.error('Failed to add balance.');
+      toast.error('فشل في إضافة الرصيد.');
     }
   };
 

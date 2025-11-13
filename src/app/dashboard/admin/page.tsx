@@ -79,7 +79,7 @@ export default async function AdminPage() {
                   <TableCell>${user.balance.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={user.status === 'active' ? 'secondary' : 'destructive'}>
-                      {user.status === 'active' ? 'نشط' : 'معطل'}
+                      {user.status === 'active' ? 'نشط' : 'موقوف'}
                     </Badge>
                   </TableCell>
                   <TableCell className="flex gap-2">
