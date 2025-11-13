@@ -31,8 +31,28 @@ const AssistUserOutputSchema = z.object({
 });
 export type AssistUserOutput = z.infer<typeof AssistUserOutputSchema>;
 
+const mockResponses: { [key: string]: string } = {
+  'ad': "You can create a new Google Ad campaign on the 'Create Ad' page. You can use your $4 welcome bonus to get started. Would you like me to take you to the Create Ad page? [Link: /dashboard/create-ad]",
+  'money': "You can add funds and manage your balance on the 'Financials' page. You'll also find your referral link there to earn commissions. Would you like me to take you to the Financials page? [Link: /dashboard/financials]",
+  'balance': "You can add funds and manage your balance on the 'Financials' page. You'll also find your referral link there to earn commissions. Would you like me to take you to the Financials page? [Link: /dashboard/financials]",
+  'agency': "The Agency page is for our subscription plan which offers unlimited ad accounts and priority support. Would you like me to take you to the Agency page? [Link: /dashboard/subscription]",
+  'lost': "No problem. The Dashboard is the main hub where you can see an overview of your account. Would you like me to take you to the Dashboard page? [Link: /dashboard]",
+};
+
 export async function assistUser(input: AssistUserInput): Promise<AssistUserOutput> {
-  return intelligentAssistantFlow(input);
+  try {
+    return await intelligentAssistantFlow(input);
+  } catch (error) {
+    console.error(`Intelligent assistant failed: ${error instanceof Error ? error.message : String(error)}`);
+    // Fallback to a simple keyword-based mock response system
+    const query = input.query.toLowerCase();
+    for (const key in mockResponses) {
+      if (query.includes(key)) {
+        return { response: mockResponses[key] };
+      }
+    }
+    return { response: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment. In the meantime, you can explore the Dashboard. [Link: /dashboard]" };
+  }
 }
 
 // System instruction for the assistant
