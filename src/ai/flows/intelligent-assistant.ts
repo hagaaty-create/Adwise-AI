@@ -69,40 +69,6 @@ const systemInstruction = `You are "Hagaaty AI Assistant", a friendly, expert AI
 - Keep answers concise and to the point.
 - When asked about your identity, introduce yourself as the "Hagaaty AI Assistant".`;
 
-
-// Smart Fallback System
-function getFallbackResponse(query: string): string {
-  const lowerCaseQuery = query.toLowerCase();
-
-  const responses: { [key: string]: string } = {
-    'create ad': "You can create a new Google Ad campaign on the 'Create Ad' page. You can use your $4 welcome bonus to get started. Would you like me to take you to the Create Ad page? [Link: /dashboard/create-ad]",
-    'money': "You can add funds, check your balance, and get your referral link on the 'Financials' page. Would you like me to take you to the Financials page? [Link: /dashboard/financials]",
-    'agency': "The Agency subscription offers unlimited ad accounts and priority support. You can find more details on the Agency page. Would you like me to take you to the Agency page? [Link: /dashboard/subscription]",
-    'bonus': "Every new user receives a $4 welcome bonus! You can use it on your first campaign on the 'Create Ad' page. Would you like me to take you to the Create Ad page? [Link: /dashboard/create-ad]",
-    'help': "I can help you navigate the site and understand its features. For example, you can ask me 'how to create an ad' or 'how to add money'. How can I assist you?",
-    'default': "I'm sorry, I seem to be having a temporary connection issue. However, I can still help you navigate! Try asking about creating ads, managing your financials, or the agency subscription."
-  };
-
-  if (lowerCaseQuery.includes('create') || lowerCaseQuery.includes('ad')) {
-    return responses['create ad'];
-  }
-  if (lowerCaseQuery.includes('money') || lowerCaseQuery.includes('balance') || lowerCaseQuery.includes('financials') || lowerCaseQuery.includes('referral')) {
-    return responses['money'];
-  }
-  if (lowerCaseQuery.includes('agency') || lowerCaseQuery.includes('subscription')) {
-    return responses['agency'];
-  }
-   if (lowerCaseQuery.includes('bonus') || lowerCaseQuery.includes('welcome')) {
-    return responses['bonus'];
-  }
-  if (lowerCaseQuery.includes('help') || lowerCaseQuery.includes('support')) {
-    return responses['help'];
-  }
-
-  return responses.default;
-}
-
-
 const intelligentAssistantFlow = ai.defineFlow(
   {
     name: 'intelligentAssistantFlow',
@@ -118,13 +84,8 @@ const intelligentAssistantFlow = ai.defineFlow(
     }
 
     try {
-      // Check for API key existence. If it doesn't exist, go straight to fallback.
       const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        return { response: getFallbackResponse(query) };
-      }
-
-      const model = googleAI.model('gemini-pro', { apiKey });
+      const model = googleAI.model('gemini-pro', apiKey ? { apiKey } : undefined);
 
       // Correctly build the history for the model.
       const historyForModel = (history || []).map(msg => ({
@@ -142,15 +103,19 @@ const intelligentAssistantFlow = ai.defineFlow(
       const response = result.text;
       
       if (!response) {
-         return { response: getFallbackResponse(query) };
+         throw new Error('AI model did not return a response.');
       }
 
       return { response };
 
     } catch (e: any) {
       console.error('Error in intelligentAssistantFlow:', e.message);
-      // Instead of throwing an error that crashes the app, we return a helpful fallback response.
-      return { response: getFallbackResponse(query) };
+      // The error is now thrown with a more helpful message for the developer.
+      throw new GenkitError({
+        status: 'INTERNAL',
+        message:
+          'An error occurred while processing the request with the AI model. Please ensure your GEMINI_API_KEY is valid and your Google Cloud project has billing enabled.',
+      });
     }
   }
 );

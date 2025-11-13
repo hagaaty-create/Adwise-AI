@@ -27,13 +27,6 @@ const SmartAdReviewOutputSchema = z.object({
 export type SmartAdReviewOutput = z.infer<typeof SmartAdReviewOutputSchema>;
 
 
-function getFallbackData(): SmartAdReviewOutput {
-    return {
-        isApproved: true,
-        reason: 'Ad approved (Fallback). The ad seems compliant and relevant for the target audience. The AI API is currently unavailable, so this is a default approval.'
-    };
-}
-
 export async function smartAdReview(input: SmartAdReviewInput): Promise<SmartAdReviewOutput> {
   return smartAdReviewFlow(input);
 }
@@ -65,20 +58,17 @@ const smartAdReviewFlow = ai.defineFlow(
   },
   async input => {
     try {
-        // If the API key is missing, go directly to fallback.
-        if (!process.env.GEMINI_API_KEY) {
-            console.log('GEMINI_API_KEY is missing. Using fallback data for smartAdReviewFlow.');
-            return getFallbackData();
-        }
-        
         const {output} = await prompt(input);
         if (!output) {
           throw new Error('AI model did not return any output.');
         }
         return output;
     } catch (error) {
-        console.error('Error in smartAdReviewFlow. Returning fallback data.', error);
-        return getFallbackData();
+        console.error('Error in smartAdReviewFlow. This is likely an API key or billing issue.', error);
+        throw new GenkitError({
+            status: 'INTERNAL',
+            message: 'An error occurred while processing the request with the AI model. Please ensure your GEMINI_API_KEY is valid and your Google Cloud project has billing enabled.',
+        });
     }
   }
 );

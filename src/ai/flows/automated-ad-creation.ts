@@ -42,26 +42,6 @@ const AutomatedAdCampaignOutputSchema = z.object({
 export type AutomatedAdCampaignOutput = z.infer<typeof AutomatedAdCampaignOutputSchema>;
 
 
-function getFallbackData(input: AutomatedAdCampaignInput): AutomatedAdCampaignOutput {
-    const { budget, productDescription, campaignDurationDays } = input;
-    // Simulate realistic metrics based on budget.
-    const cpc = 0.5; // Assume cost-per-click is $0.50
-    const ctr = 0.05; // Assume click-through-rate is 5%
-    const predictedConversions = Math.floor(budget / cpc);
-    const predictedReach = Math.floor(predictedConversions / ctr);
-
-    return {
-        campaignSummaries: [{
-            platform: 'Google',
-            adCopy: `This is a fallback ad copy because the AI API is unavailable. It is based on your product description: "${productDescription}". This ad is designed to be compelling and drive results.`,
-            predictedReach: predictedReach,
-            predictedConversions: predictedConversions,
-            estimatedCost: budget
-        }]
-    };
-}
-
-
 export async function createAutomatedAdCampaign(input: AutomatedAdCampaignInput): Promise<AutomatedAdCampaignOutput> {
   return automatedAdCampaignFlow(input);
 }
@@ -95,12 +75,6 @@ const automatedAdCampaignFlow = ai.defineFlow(
   },
   async input => {
     try {
-      // If the API key is missing, go directly to fallback.
-      if (!process.env.GEMINI_API_KEY) {
-          console.log('GEMINI_API_KEY is missing. Using fallback data for automatedAdCampaignFlow.');
-          return getFallbackData(input);
-      }
-
       const modifiedInput = { ...input, platforms: ['Google' as const] };
       const {output} = await automatedAdCampaignPrompt(modifiedInput);
       
@@ -115,8 +89,11 @@ const automatedAdCampaignFlow = ai.defineFlow(
       return output;
 
     } catch (error) {
-        console.error('Error in automatedAdCampaignFlow. Returning fallback data.', error);
-        return getFallbackData(input);
+        console.error('Error in automatedAdCampaignFlow. This is likely an API key or billing issue.', error);
+        throw new GenkitError({
+            status: 'INTERNAL',
+            message: 'An error occurred while processing the request with the AI model. Please ensure your GEMINI_API_KEY is valid and your Google Cloud project has billing enabled.',
+        });
     }
   }
 );
