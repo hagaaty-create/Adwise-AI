@@ -96,7 +96,7 @@ const intelligentAssistantFlow = ai.defineFlow(
       const result = await ai.generate({
         model,
         system: systemInstruction,
-        prompt: [{ role: 'user' as const, content: [{ text: query }] }],
+        prompt: query,
         history: historyForModel,
       });
 
@@ -109,7 +109,7 @@ const intelligentAssistantFlow = ai.defineFlow(
       return { response };
 
     } catch (e: any) {
-      console.error('Error in intelligentAssistantFlow:', e.message);
+      console.error('Error in intelligentAssistantFlow. This is likely an API key or billing issue.', e);
       // The error is now thrown with a more helpful message for the developer.
       throw new GenkitError({
         status: 'INTERNAL',
