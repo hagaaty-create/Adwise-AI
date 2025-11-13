@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,6 @@ const parseAssistantResponse = (text: string) => {
     if (match) {
         const mainText = text.replace(regex, '').trim();
         const linkUrl = match[1];
-        // Extract link text from "Would you like me to take you to the [Page Name] page?"
         const linkTextMatch = mainText.match(/the (.*?) page\?/);
         const linkText = linkTextMatch ? linkTextMatch[1] : 'Go to Page';
         return { mainText, link: { url: linkUrl, text: linkText } };
@@ -40,11 +39,24 @@ export function ChatAssistant() {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
+  
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setIsLoading(true);
+      const initialMessage: Message = {role: 'assistant', content: "Hello! I'm your Hagaaty AI assistant. How can I help you today? You can ask me about the website's features or how to navigate it."};
+      // Prevent adding another initial message if one already exists.
+      if (messages.length === 0) {
+          setMessages([initialMessage]);
+      }
+      setIsLoading(false);
+    }
+  }, [isOpen, messages.length]);
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,17 +64,16 @@ export function ChatAssistant() {
     if (!trimmedInput || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: trimmedInput };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const history = messages; 
+      const history = [...messages, userMessage]; 
 
       const result = await assistUser({
         query: trimmedInput,
-        history: history,
+        history: history.filter(m => m.role === 'user' || m.role === 'assistant').map(m => ({role: m.role, content: m.content})),
       });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
@@ -79,16 +90,6 @@ export function ChatAssistant() {
       setIsLoading(false);
     }
   };
-  
-  useEffect(() => {
-    if(isOpen && messages.length === 0) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setMessages([{role: 'assistant', content: "Hello! I'm your Hagaaty AI assistant. How can I help you today? You can ask me about the website's features or how to navigate it."}]);
-        setIsLoading(false);
-      }, 500);
-    }
-  }, [isOpen, messages.length]);
 
   const handleLinkClick = (url: string) => {
     if (url === pathname) {
