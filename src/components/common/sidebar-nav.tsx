@@ -67,8 +67,6 @@ export function SidebarNav() {
   
   const adminNavItems = [
       { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
-      { href: '/dashboard/admin/articles', icon: Newspaper, label: 'Manage Articles' },
-      { href: '/dashboard/admin/site-marketing', icon: Briefcase, label: translations.sidebar.siteMarketing },
   ];
 
   return (
