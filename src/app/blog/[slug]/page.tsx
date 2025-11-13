@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Calendar, ArrowLeft, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
+import { SafeDateTime } from '@/components/common/safe-date-time';
+
 
 type Props = {
   params: { slug: string };
@@ -79,7 +81,7 @@ export default async function ArticlePage({ params }: Props) {
               <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4">{article.title}</h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                <span>Published on {new Date(article.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span>Published on <SafeDateTime date={article.created_at} options={{ year: 'numeric', month: 'long', day: 'numeric' }} /></span>
               </div>
             </header>
 

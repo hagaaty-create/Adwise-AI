@@ -11,6 +11,7 @@ import { UserControls } from './_components/user-controls';
 import { CampaignControls } from './_components/campaign-controls';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { SafeDateTime } from '@/components/common/safe-date-time';
 
 import {
   AlertDialog,
@@ -45,7 +46,7 @@ function WithdrawalRow({ withdrawal, onProcess }: { withdrawal: Withdrawal; onPr
       <TableCell>{withdrawal.user_name}</TableCell>
       <TableCell className="font-medium">${withdrawal.amount.toFixed(2)}</TableCell>
       <TableCell dir="ltr">{withdrawal.phone_number}</TableCell>
-      <TableCell>{new Date(withdrawal.created_at).toLocaleString('ar-EG')}</TableCell>
+      <TableCell><SafeDateTime date={withdrawal.created_at} locale="ar-EG" options={{dateStyle: 'medium', timeStyle: 'short'}} /></TableCell>
       <TableCell className="text-right">
         <AlertDialog>
           <AlertDialogTrigger asChild>

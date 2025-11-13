@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Loader2, Megaphone, Clock, CheckCircle, BarChart2, DollarSign, Eye, MousePointerClick, Info, Link as LinkIcon, Phone } from 'lucide-react';
 import Link from 'next/link';
+import { SafeDateTime } from '@/components/common/safe-date-time';
 
 export type CampaignStatus = 'pending' | 'review' | 'active' | 'finished';
 
@@ -157,7 +158,7 @@ export default function CampaignsPage() {
                                     <div className="flex-1">
                                         <p className="font-semibold">{campaign.headline}</p>
                                         <p className="text-xs text-muted-foreground">
-                                          بدأت في: {new Date(campaign.startDate).toLocaleDateString('ar-EG')}
+                                          بدأت في: <SafeDateTime date={campaign.startDate} locale="ar-EG" />
                                         </p>
                                     </div>
                                 </div>

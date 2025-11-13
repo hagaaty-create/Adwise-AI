@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Calendar, ArrowRight, BookOpen, Zap } from 'lucide-react';
+import { SafeDateTime } from '@/components/common/safe-date-time';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -50,7 +51,7 @@ export default async function BlogPage() {
                   </CardTitle>
                   <CardDescription className="flex items-center gap-2 text-sm pt-2">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(article.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    <SafeDateTime date={article.created_at} options={{ year: 'numeric', month: 'long', day: 'numeric' }} />
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">

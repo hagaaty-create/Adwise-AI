@@ -23,6 +23,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { SafeDateTime } from '@/components/common/safe-date-time';
+
 
 export default function FinancialsPage() {
   const referralLink = "https://hagaaty.com/ref/user123";
@@ -174,7 +176,7 @@ export default function FinancialsPage() {
                                         <TableRow key={w.id}>
                                             <TableCell>
                                                 <p className="font-medium">${w.amount.toFixed(2)}</p>
-                                                <p className="text-xs text-muted-foreground">{new Date(w.created_at).toLocaleDateString('ar-EG')}</p>
+                                                <p className="text-xs text-muted-foreground"><SafeDateTime date={w.created_at} locale="ar-EG" /></p>
                                             </TableCell>
                                             <TableCell className="text-left">
                                                 <Badge variant={w.status === 'completed' ? 'secondary' : 'outline'} className="flex items-center gap-1 w-fit">
@@ -286,7 +288,7 @@ export default function FinancialsPage() {
                   <TableRow><TableCell colSpan={3} className="text-center h-24"><Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" /></TableCell></TableRow>
                 ) : transactions.length > 0 ? (
                   transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((transaction) => (
-                    <TableRow key={transaction.id}><TableCell>{new Date(transaction.created_at).toLocaleDateString('ar-EG')}</TableCell><TableCell className="font-medium">{transaction.description}</TableCell><TableCell className={`text-right font-semibold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>{transaction.amount > 0 ? '+' : ''}${transaction.amount.toFixed(2)}</TableCell></TableRow>
+                    <TableRow key={transaction.id}><TableCell><SafeDateTime date={transaction.created_at} locale="ar-EG" /></TableCell><TableCell className="font-medium">{transaction.description}</TableCell><TableCell className={`text-right font-semibold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>{transaction.amount > 0 ? '+' : ''}${transaction.amount.toFixed(2)}</TableCell></TableRow>
                   ))
                 ) : (
                     <TableRow><TableCell colSpan={3} className="text-center h-24 text-muted-foreground">لا توجد معاملات لعرضها.</TableCell></TableRow>
