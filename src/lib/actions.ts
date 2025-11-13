@@ -4,6 +4,11 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import type { Transaction, Withdrawal, User, Campaign, Article } from './db';
+import { Resend } from 'resend';
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const ADMIN_EMAIL = 'hagaaty@gmail.com';
+
 
 // --- DATABASE SIMULATION ---
 
@@ -69,6 +74,9 @@ export async function requestWithdrawal(amount: number, phoneNumber: string) {
     if (amount > MOCK_USER.referral_earnings) {
         throw new Error('Withdrawal amount cannot exceed your available referral earnings.');
     }
+    if(amount <= 0) {
+        throw new Error('Invalid withdrawal amount.');
+    }
 
     MOCK_USER.referral_earnings -= amount;
 
@@ -84,16 +92,65 @@ export async function requestWithdrawal(amount: number, phoneNumber: string) {
     };
     mockWithdrawals.push(newWithdrawal);
     
-    // Simulate email notification
-    console.log(`\n--- SIMULATED EMAIL ---
-    To: hagaaty@gmail.com
-    Subject: New Withdrawal Request
-    Body: User ${MOCK_USER.name} requested $${amount} to phone ${phoneNumber}.
-    -----------------------\n`);
+    if (resend) {
+        try {
+            await resend.emails.send({
+                from: `Hagaaty <noreply@${process.env.RESEND_DOMAIN || 'resend.dev'}>`,
+                to: ADMIN_EMAIL,
+                subject: 'New Withdrawal Request',
+                html: `
+                    <h1>New Withdrawal Request</h1>
+                    <p>User <strong>${MOCK_USER.name} (${MOCK_USER.email})</strong> has requested a withdrawal.</p>
+                    <ul>
+                        <li>Amount: <strong>$${amount.toFixed(2)}</strong></li>
+                        <li>Vodafone Cash Number: <strong>${phoneNumber}</strong></li>
+                    </ul>
+                    <p>Please process this payment manually and mark it as completed in the admin dashboard.</p>
+                `
+            });
+            console.log("SIMULATING: Withdrawal request email sent to admin.");
+        } catch (error) {
+            console.error("Failed to send withdrawal email:", error);
+        }
+    } else {
+         console.log(`\n--- SIMULATED EMAIL ---
+        To: ${ADMIN_EMAIL}
+        Subject: New Withdrawal Request
+        Body: User ${MOCK_USER.name} requested $${amount.toFixed(2)} to phone ${phoneNumber}.
+        -----------------------\n`);
+    }
 
     revalidatePath('/dashboard/financials');
     revalidatePath('/dashboard/admin');
 }
+
+export async function sendManualTopUpNotification(method: string) {
+    if (!resend) {
+        console.warn("Resend is not configured. Skipping email notification.");
+        return;
+    }
+
+    // In a real app, you'd get the current user's details.
+    const user = MOCK_USER; 
+    
+    try {
+        await resend.emails.send({
+            from: `Hagaaty <noreply@${process.env.RESEND_DOMAIN || 'resend.dev'}>`,
+            to: ADMIN_EMAIL,
+            subject: `Manual Top-Up Proof Received (${method})`,
+            html: `
+                <h1>Manual Top-Up Notification</h1>
+                <p>User <strong>${user.name} (${user.email})</strong> has indicated they have sent a manual payment via <strong>${method}</strong>.</p>
+                <p>Please verify the payment and credit their account from the admin dashboard if the payment is confirmed.</p>
+                <p>This is just a notification. The user has been instructed to send proof to your support email.</p>
+            `,
+        });
+        console.log("SIMULATING: Manual top-up notification email sent to admin.");
+    } catch (error) {
+        console.error("Failed to send manual top-up notification email:", error);
+    }
+}
+
 
 export async function processWithdrawal(withdrawalId: string) {
     await delay(300);
@@ -134,7 +191,29 @@ export async function addUserBalance(userId: string, amount: number) {
     console.log("SIMULATING: addUserBalance", { userId, amount });
     const description = `Admin manual credit: $${amount.toFixed(2)}`;
     await addTransaction(userId, amount, description);
+
     revalidatePath('/dashboard/admin');
+    
+    // Send email notification to user
+    const user = MOCK_USER; // In real app, find user by ID
+     if (resend && user) {
+        try {
+            await resend.emails.send({
+                from: `Hagaaty <noreply@${process.env.RESEND_DOMAIN || 'resend.dev'}>`,
+                to: user.email,
+                subject: 'Your Account Has Been Credited',
+                html: `
+                    <h1>Balance Update</h1>
+                    <p>Hello ${user.name},</p>
+                    <p>Your account has been credited with <strong>$${amount.toFixed(2)}</strong>.</p>
+                    <p>Your new balance is <strong>$${user.balance.toFixed(2)}</strong>.</p>
+                    <p>Thank you for using Hagaaty!</p>
+                `
+            });
+        } catch (error) {
+            console.error("Failed to send balance update email:", error);
+        }
+    }
 }
 
 export async function toggleCampaignStatus(campaignId: string, currentStatus: 'active' | 'paused') {
@@ -221,3 +300,5 @@ export async function deleteArticle(id: string) {
   revalidatePath('/dashboard/admin/articles');
   revalidatePath('/blog');
 }
+
+    
