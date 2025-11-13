@@ -44,18 +44,19 @@ export type AutomatedSiteManagementOutput = z.infer<typeof AutomatedSiteManageme
 export async function automatedSiteManagement(
   input: AutomatedSiteManagementInput
 ): Promise<AutomatedSiteManagementOutput> {
-  if (!process.env.GEMINI_API_KEY) {
+  if (!ai) {
+      console.error('AI service is not available. GEMINI_API_KEY might be missing.');
       throw new Error("The AI service is not configured. The GEMINI_API_KEY is missing. AI functionality is disabled.");
   }
   try {
     return await automatedSiteManagementFlow(input);
   } catch (error) {
      console.error(`Automated site management failed: ${error instanceof Error ? error.message : String(error)}`);
-     throw new Error('The AI failed to generate the SEO plan. This might be due to a temporary issue with the AI service. Please try again later.');
+     throw new Error('The AI failed to generate the SEO plan. This might be due to a temporary issue with the AI service or an invalid API key. Please try again later.');
   }
 }
 
-const prompt = ai.definePrompt({
+const prompt = ai?.definePrompt({
   name: 'automatedSiteManagementPrompt',
   input: {schema: AutomatedSiteManagementInputSchema},
   output: {schema: AutomatedSiteManagementOutputSchema},
@@ -72,19 +73,18 @@ Your task is to act autonomously. You will perform a continuous cycle of analysi
 Your final output must be a single JSON object matching the specified format.`,
 });
 
-const automatedSiteManagementFlow = ai.defineFlow(
+const automatedSiteManagementFlow = ai?.defineFlow(
   {
     name: 'automatedSiteManagementFlow',
     inputSchema: AutomatedSiteManagementInputSchema,
     outputSchema: AutomatedSiteManagementOutputSchema,
   },
   async input => {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new GenkitError({
-        status: 'UNAUTHENTICATED',
-        message:
-          'The GEMINI_API_KEY environment variable is not set.',
-      });
+    if (!prompt) {
+        throw new GenkitError({
+            status: 'UNAVAILABLE',
+            message: 'AI prompt is not configured. The application may be starting up or the API key is missing.',
+        });
     }
 
     const {output} = await prompt(input);

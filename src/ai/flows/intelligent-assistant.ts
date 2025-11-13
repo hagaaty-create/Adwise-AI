@@ -33,8 +33,8 @@ const AssistUserOutputSchema = z.object({
 export type AssistUserOutput = z.infer<typeof AssistUserOutputSchema>;
 
 export async function assistUser(input: AssistUserInput): Promise<AssistUserOutput> {
-  if (!process.env.GEMINI_API_KEY) {
-    console.error('GEMINI_API_KEY is not set on the server.');
+  if (!ai) {
+    console.error('AI service is not available. GEMINI_API_KEY might be missing.');
     throw new Error("The AI Assistant is not configured correctly. The API key is missing. Please contact support.");
   }
   
@@ -42,7 +42,7 @@ export async function assistUser(input: AssistUserInput): Promise<AssistUserOutp
     return await intelligentAssistantFlow(input);
   } catch (error) {
      console.error(`Intelligent assistant failed: ${error instanceof Error ? error.message : String(error)}`);
-     throw new Error('An internal error occurred while communicating with the AI. Please try again later.');
+     throw new Error('An internal error occurred while communicating with the AI. This might be due to a temporary issue with the AI service or an invalid API key. Please try again later.');
   }
 }
 
@@ -80,21 +80,13 @@ const systemInstruction = `You are "Hagaaty AI Assistant", a friendly, expert AI
 - Keep answers concise and to the point.
 - When asked about your identity, introduce yourself as the "Hagaaty AI Assistant".`;
 
-const intelligentAssistantFlow = ai.defineFlow(
+const intelligentAssistantFlow = ai?.defineFlow(
   {
     name: 'intelligentAssistantFlow',
     inputSchema: AssistUserInputSchema,
     outputSchema: AssistUserOutputSchema,
   },
   async ({ query, history }) => {
-    if (!process.env.GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY is not set.');
-      throw new GenkitError({
-        status: 'UNAUTHENTICATED',
-        message: 'The AI service is not configured. The GEMINI_API_KEY is missing. Please contact support.',
-      });
-    }
-    
     if (!query) {
       throw new GenkitError({
         status: 'INVALID_ARGUMENT',

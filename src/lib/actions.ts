@@ -6,26 +6,30 @@ import { z } from 'zod';
 import { seed, type Transaction, type Withdrawal, type User, type Campaign, type Article } from './db';
 import { Resend } from 'resend';
 
-// This should be in environment variables, but for demo purposes it's here.
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789'); // Use env var or a placeholder
+// Initialize Resend with a fallback for local development
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const USER_ID = '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7'; // Hardcoded ID for 'hagaaty@gmail.com'
 
-async function ensureDbSeeded() {
+// A promise to ensure seeding only runs once per server startup.
+const ensureDbSeeded = (async () => {
     try {
         await sql`SELECT 1 FROM users LIMIT 1;`;
     } catch (error: any) {
-        if (error.message.includes('relation "users" does not exist') || error.message.includes('relation "withdrawals" does not exist') || error.message.includes('relation "campaigns" does not exist') || error.message.includes('relation "articles" does not exist')) {
-            console.log("Tables not found, seeding database...");
+        if (error.message.includes('relation "users" does not exist') || error.message.includes('does not exist')) {
+            console.log("One or more tables not found, seeding database...");
             await seed();
+            console.log("Database seeding complete.");
         } else {
-            throw error;
+            console.error("Unexpected database error during initial check:", error);
+            // In production, you might want to re-throw or handle this differently
+            // For now, we'll let it proceed, but operations might fail.
         }
     }
-}
+})();
 
 export async function getFinancials() {
-    await ensureDbSeeded();
+    await ensureDbSeeded; // Wait for the seeding check to complete
     try {
         const userQuery = sql`SELECT balance, referral_earnings FROM users WHERE id = ${USER_ID}`;
         const transactionsQuery = sql`SELECT * FROM transactions WHERE user_id = ${USER_ID} ORDER BY created_at DESC`;
@@ -45,13 +49,13 @@ export async function getFinancials() {
         };
     } catch (error) {
         console.error('Failed to fetch financial data:', error);
-        throw new Error('Failed to connect to the database.');
+        throw new Error('Failed to connect to the database. Please ensure it is set up correctly in Vercel.');
     }
 }
 
 
 export async function addTransaction(userId: string, amount: number, description: string) {
-    await ensureDbSeeded();
+    await ensureDbSeeded;
     const validatedAmount = z.number().parse(amount);
     const validatedUserId = z.string().uuid().parse(userId);
     const validatedDescription = z.string().min(1).parse(description);
@@ -80,7 +84,7 @@ export async function addTransaction(userId: string, amount: number, description
 }
 
 export async function requestWithdrawal(amount: number, phoneNumber: string) {
-    await ensureDbSeeded();
+    await ensureDbSeeded;
     const parsedAmount = z.number().min(1, 'Amount must be greater than 0.').parse(amount);
     const parsedPhoneNumber = z.string().min(10, 'Please enter a valid phone number.').parse(phoneNumber);
 
@@ -111,24 +115,29 @@ export async function requestWithdrawal(amount: number, phoneNumber: string) {
         
         const withdrawalId = rows[0].id;
 
-        // Send email notification to admin
-        try {
-            await resend.emails.send({
-                from: 'Hagaaty <onboarding@resend.dev>', // Should be a configured domain
-                to: 'hagaaty@gmail.com',
-                subject: `New Withdrawal Request (#${withdrawalId.substring(0, 4)})`,
-                html: `
-                    <h1>New Withdrawal Request</h1>
-                    <p><strong>User:</strong> ${user.name} (${user.email})</p>
-                    <p><strong>Amount:</strong> $${parsedAmount.toFixed(2)}</p>
-                    <p><strong>Vodafone Cash Number:</strong> ${parsedPhoneNumber}</p>
-                    <p>Please process this request and mark it as completed in the admin panel.</p>
-                `,
-            });
-        } catch (emailError) {
-            console.error("Email sending failed, but withdrawal was recorded:", emailError);
-            // Don't block the user, but log the error
+        // Send email notification to admin if Resend is configured
+        if (resend) {
+            try {
+                await resend.emails.send({
+                    from: 'Hagaaty <onboarding@resend.dev>', // Should be a configured domain
+                    to: 'hagaaty@gmail.com',
+                    subject: `New Withdrawal Request (#${withdrawalId.substring(0, 4)})`,
+                    html: `
+                        <h1>New Withdrawal Request</h1>
+                        <p><strong>User:</strong> ${user.name} (${user.email})</p>
+                        <p><strong>Amount:</strong> $${parsedAmount.toFixed(2)}</p>
+                        <p><strong>Vodafone Cash Number:</strong> ${parsedPhoneNumber}</p>
+                        <p>Please process this request and mark it as completed in the admin panel.</p>
+                    `,
+                });
+            } catch (emailError) {
+                console.error("Email sending failed, but withdrawal was recorded:", emailError);
+                // Don't block the user, but log the error
+            }
+        } else {
+            console.warn("RESEND_API_KEY not set. Skipping withdrawal notification email.");
         }
+
 
         revalidatePath('/dashboard/financials');
         revalidatePath('/dashboard/admin');
@@ -140,7 +149,7 @@ export async function requestWithdrawal(amount: number, phoneNumber: string) {
 }
 
 export async function processWithdrawal(withdrawalId: string) {
-    await ensureDbSeeded();
+    await ensureDbSeeded;
     const parsedId = z.string().uuid().parse(withdrawalId);
     try {
         const result = await sql`
@@ -161,7 +170,7 @@ export async function processWithdrawal(withdrawalId: string) {
 
 // --- Admin Functions ---
 export async function getAdminDashboardData() {
-    await ensureDbSeeded();
+    await ensureDbSeeded;
     try {
         const usersQuery = sql`SELECT id, name, email, balance, status, referral_earnings FROM users ORDER BY name`;
         const campaignsQuery = sql`SELECT c.id, c.user_id, u.name as user_name, c.headline, c.status FROM campaigns c JOIN users u ON c.user_id = u.id ORDER BY u.name, c.headline`;
@@ -186,7 +195,7 @@ export async function getAdminDashboardData() {
 
 
 export async function toggleUserStatus(userId: string, currentStatus: 'active' | 'suspended') {
-  await ensureDbSeeded();
+  await ensureDbSeeded;
   const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
   try {
     await sql`
@@ -202,7 +211,7 @@ export async function toggleUserStatus(userId: string, currentStatus: 'active' |
 }
 
 export async function addUserBalance(userId: string, amount: number) {
-  await ensureDbSeeded();
+  await ensureDbSeeded;
   const parsedAmount = z.number().parse(amount);
   try {
       const description = `Admin manual credit: $${parsedAmount.toFixed(2)}`;
@@ -215,7 +224,7 @@ export async function addUserBalance(userId: string, amount: number) {
 }
 
 export async function toggleCampaignStatus(campaignId: string, currentStatus: 'active' | 'paused') {
-  await ensureDbSeeded();
+  await ensureDbSeeded;
   const newStatus = currentStatus === 'active' ? 'paused' : 'active';
   try {
     await sql`
@@ -235,7 +244,7 @@ export async function createCampaign(values: {
     userName: string,
     headline: string,
 }) {
-    await ensureDbSeeded();
+    await ensureDbSeeded;
     const { userId, userName, headline } = values;
     try {
         await sql`
@@ -271,7 +280,7 @@ const ArticleSchema = z.object({
 });
 
 export async function saveArticle(articleData: z.infer<typeof ArticleSchema>) {
-    await ensureDbSeeded();
+    await ensureDbSeeded;
     try {
         const validatedData = ArticleSchema.parse(articleData);
         const slug = createSlug(validatedData.title);
@@ -295,7 +304,7 @@ export async function saveArticle(articleData: z.infer<typeof ArticleSchema>) {
 }
 
 export async function getArticles(): Promise<Article[]> {
-  await ensureDbSeeded();
+  await ensureDbSeeded;
   try {
     const { rows } = await sql`SELECT id, title, slug, status, created_at FROM articles ORDER BY created_at DESC`;
     return rows as Article[];
@@ -306,7 +315,7 @@ export async function getArticles(): Promise<Article[]> {
 }
 
 export async function getPublishedArticles(): Promise<Article[]> {
-  await ensureDbSeeded();
+  await ensureDbSeeded;
   try {
     const { rows } = await sql`SELECT title, slug, created_at, content, html_content FROM articles WHERE status = 'published' ORDER BY created_at DESC`;
     return rows as Article[];
@@ -317,7 +326,7 @@ export async function getPublishedArticles(): Promise<Article[]> {
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
-  await ensureDbSeeded();
+  await ensureDbSeeded;
   try {
     const { rows } = await sql`SELECT title, content, html_content, created_at, slug FROM articles WHERE slug = ${slug} AND status = 'published'`;
     return (rows[0] as Article) || null;
@@ -328,7 +337,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 }
 
 export async function publishArticle(id: string) {
-  await ensureDbSeeded();
+  await ensureDbSeeded;
   try {
     const { rows } = await sql`UPDATE articles SET status = 'published' WHERE id = ${id} RETURNING slug`;
     revalidatePath('/dashboard/admin/articles');
@@ -343,7 +352,7 @@ export async function publishArticle(id: string) {
 }
 
 export async function deleteArticle(id: string) {
-  await ensureDbSeeded();
+  await ensureDbSeeded;
   try {
     await sql`DELETE FROM articles WHERE id = ${id}`;
     revalidatePath('/dashboard/admin/articles');

@@ -28,19 +28,19 @@ const SmartAdReviewOutputSchema = z.object({
 export type SmartAdReviewOutput = z.infer<typeof SmartAdReviewOutputSchema>;
 
 export async function smartAdReview(input: SmartAdReviewInput): Promise<SmartAdReviewOutput> {
-   if (!process.env.GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY is not set.');
+   if (!ai) {
+      console.error('AI service is not available. GEMINI_API_KEY might be missing.');
       throw new Error("The AI service is not configured. The GEMINI_API_KEY is missing.");
    }
    try {
     return await smartAdReviewFlow(input);
   } catch (error) {
     console.error(`Smart ad review failed: ${error instanceof Error ? error.message : String(error)}`);
-    throw new Error('The AI failed to review the ad. This might be due to a temporary issue with the AI service. Please try again later.');
+    throw new Error('The AI failed to review the ad. This might be due to a temporary issue with the AI service or an invalid API key. Please try again later.');
   }
 }
 
-const prompt = ai.definePrompt({
+const prompt = ai?.definePrompt({
   name: 'smartAdReviewPrompt',
   input: {schema: SmartAdReviewInputSchema},
   output: {schema: SmartAdReviewOutputSchema},
@@ -59,19 +59,18 @@ Consider the following:
 - Clarity and accuracy of the message`,
 });
 
-const smartAdReviewFlow = ai.defineFlow(
+const smartAdReviewFlow = ai?.defineFlow(
   {
     name: 'smartAdReviewFlow',
     inputSchema: SmartAdReviewInputSchema,
     outputSchema: SmartAdReviewOutputSchema,
   },
   async input => {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new GenkitError({
-        status: 'UNAUTHENTICATED',
-        message:
-          'The GEMINI_API_KEY environment variable is not set.',
-      });
+    if (!prompt) {
+        throw new GenkitError({
+            status: 'UNAVAILABLE',
+            message: 'AI prompt is not configured. The application may be starting up or the API key is missing.',
+        });
     }
 
     const {output} = await prompt(input);
