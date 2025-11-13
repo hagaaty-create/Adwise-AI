@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield } from 'lucide-react';
+import { Shield, Settings } from 'lucide-react';
 import { getUsers, getCampaigns } from '@/lib/actions';
 import { UserControls } from './_components/user-controls';
 import { CampaignControls } from './_components/campaign-controls';
@@ -26,10 +26,36 @@ export default async function AdminPage() {
           <CardTitle className="flex items-center gap-2">
             <Shield /> لوحة تحكم المسؤول
           </CardTitle>
-          <CardDescription>إدارة المستخدمين والحملات والأرصدة من هنا.</CardDescription>
+          <CardDescription>إدارة المستخدمين والحملات والتكاملات من هنا.</CardDescription>
         </CardHeader>
       </Card>
       
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings /> تكاملات Google
+          </CardTitle>
+           <CardDescription>قم بإدارة وإعداد تكاملات خدمات Google من هنا.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-2 rounded-lg border p-4">
+            <h4 className="font-semibold">Google Analytics & Tags</h4>
+            <p className="text-sm text-muted-foreground">
+              لتمكين تتبع الزوار والأحداث، افتح الملف التالي في مشروعك:
+              <code className="mx-1 rounded bg-muted px-1.5 py-1 text-xs">src/components/common/google-analytics.tsx</code>
+              ثم استبدل المعرف <code className="mx-1 rounded bg-muted px-1.5 py-1 text-xs">'G-XXXXXXXXXX'</code> بالمعرف الخاص بك.
+            </p>
+          </div>
+          <div className="space-y-2 rounded-lg border p-4">
+            <h4 className="font-semibold">Google Search Console</h4>
+            <p className="text-sm text-muted-foreground">
+              لإثبات ملكية موقعك لجوجل، انسخ "علامة التحقق HTML" من حسابك في Search Console ثم الصقها داخل وسم `<head>` في الملف التالي:
+              <code className="ml-1 rounded bg-muted px-1.5 py-1 text-xs">src/app/layout.tsx</code>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>إدارة المستخدمين</CardTitle>

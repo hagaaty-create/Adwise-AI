@@ -10,6 +10,11 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 export const metadata: Metadata = {
   title: 'Hagaaty',
   description: 'The All-in-One AI-Powered Advertising Platform',
+  // Add Google Search Console verification tag here if needed
+  // For example:
+  // verification: {
+  //   google: 'YOUR_GOOGLE_VERIFICATION_CODE',
+  // },
 };
 
 export default function RootLayout({
@@ -19,6 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className="h-full dark">
+      <head>
+        {/* Paste your Google Search Console HTML tag here for site verification */}
+      </head>
       <body className={`${inter.variable} antialiased h-full`}>
         <GoogleAnalytics />
         {children}
