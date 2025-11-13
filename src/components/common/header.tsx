@@ -1,3 +1,4 @@
+'use client';
 import { Zap, LogOut, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,8 +13,11 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { CommandPalette } from './command-palette';
+import { useLanguage } from '@/context/language-context';
 
 export function Header() {
+  const { language, toggleLanguage, translations } = useLanguage();
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <SidebarTrigger className="sm:hidden" />
@@ -23,6 +27,9 @@ export function Header() {
       </div>
       <div className="ml-auto flex items-center gap-2">
         <CommandPalette />
+         <Button variant="outline" size="sm" onClick={toggleLanguage} className="w-12">
+            {language === 'ar' ? 'EN' : 'AR'}
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -37,17 +44,17 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>{translations.header.myAccount}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <UserIcon className="mr-2 h-4 w-4" />
-              Profile
+              {translations.header.profile}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/login">
                 <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                {translations.header.logout}
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>

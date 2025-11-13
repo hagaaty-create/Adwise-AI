@@ -26,6 +26,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/context/language-context';
 
 
 // Simple auth simulation hook
@@ -41,22 +42,25 @@ const useAuth = () => {
   return { isAdmin };
 }
 
-const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/dashboard/create-ad', icon: Megaphone, label: 'Create Ad' },
-  { href: '/dashboard/review-ad', icon: CheckCircle, label: 'Review Ad' },
-  { href: '/dashboard/site-management', icon: BrainCircuit, label: 'Site AI' },
-  { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
-  { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
-];
 
-const adminNavItems = [
-    { href: '/dashboard/admin', icon: Shield, label: 'Admin Panel' },
-];
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { isAdmin } = useAuth();
+  const { translations } = useLanguage();
+
+  const navItems = [
+    { href: '/dashboard', icon: LayoutDashboard, label: translations.sidebar.dashboard },
+    { href: '/dashboard/create-ad', icon: Megaphone, label: translations.sidebar.createAd },
+    { href: '/dashboard/review-ad', icon: CheckCircle, label: translations.sidebar.reviewAd },
+    { href: '/dashboard/site-management', icon: BrainCircuit, label: translations.sidebar.siteAI },
+    { href: '/dashboard/financials', icon: Wallet, label: translations.sidebar.financials },
+    { href: '/dashboard/subscription', icon: Briefcase, label: translations.sidebar.agency },
+  ];
+  
+  const adminNavItems = [
+      { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
+  ];
 
   return (
     <Sidebar collapsible="icon">
@@ -67,15 +71,7 @@ export function SidebarNav() {
         </SidebarHeader>
         <SidebarMenu>
           {navItems.map((item) => {
-             // Special case for Marketing AI to activate Create Ad link
-             const isActive = (item.label === 'Create Ad' || item.label === 'Marketing AI')
-             ? (pathname === '/dashboard/create-ad')
-             : pathname === item.href;
-
-            // Hide "Marketing AI" if it's in the list, as it's merged with "Create Ad"
-            if (item.label === 'Marketing AI') {
-                return null;
-            }
+             const isActive = pathname === item.href;
 
             return (
               <SidebarMenuItem key={item.href + item.label}>
@@ -120,18 +116,18 @@ export function SidebarNav() {
       <SidebarFooter>
         <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings">
+              <SidebarMenuButton asChild tooltip={translations.sidebar.settings}>
                 <Link href="#">
                   <Settings />
-                  <span>Settings</span>
+                  <span>{translations.sidebar.settings}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Support">
+              <SidebarMenuButton asChild tooltip={translations.sidebar.support}>
                 <Link href="#">
                   <LifeBuoy />
-                  <span>Support</span>
+                  <span>{translations.sidebar.support}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

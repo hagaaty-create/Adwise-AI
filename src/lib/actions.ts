@@ -5,6 +5,26 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { seed } from './db';
 
+// This function is now safe to be called from client components as well.
+export async function getBalance() {
+  try {
+    const { rows } = await sql`SELECT balance FROM users WHERE email = 'ahmed.ali@example.com'`;
+    if (rows.length > 0) {
+      return parseFloat(rows[0].balance);
+    }
+    await seed();
+    const { rows: newRows } = await sql`SELECT balance FROM users WHERE email = 'ahmed.ali@example.com'`;
+     if (newRows.length > 0) {
+      return parseFloat(newRows[0].balance);
+    }
+
+  } catch (error) {
+    console.error('Failed to fetch balance:', error);
+  }
+  return 4.00;
+}
+
+
 // Function to get all users
 export async function getUsers() {
   try {
