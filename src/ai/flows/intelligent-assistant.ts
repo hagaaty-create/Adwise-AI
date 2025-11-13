@@ -69,6 +69,40 @@ const systemInstruction = `You are "Hagaaty AI Assistant", a friendly, expert AI
 - Keep answers concise and to the point.
 - When asked about your identity, introduce yourself as the "Hagaaty AI Assistant".`;
 
+
+// Smart Fallback System
+function getFallbackResponse(query: string): string {
+  const lowerCaseQuery = query.toLowerCase();
+
+  const responses: { [key: string]: string } = {
+    'create ad': "You can create a new Google Ad campaign on the 'Create Ad' page. You can use your $4 welcome bonus to get started. Would you like me to take you to the Create Ad page? [Link: /dashboard/create-ad]",
+    'money': "You can add funds, check your balance, and get your referral link on the 'Financials' page. Would you like me to take you to the Financials page? [Link: /dashboard/financials]",
+    'agency': "The Agency subscription offers unlimited ad accounts and priority support. You can find more details on the Agency page. Would you like me to take you to the Agency page? [Link: /dashboard/subscription]",
+    'bonus': "Every new user receives a $4 welcome bonus! You can use it on your first campaign on the 'Create Ad' page. Would you like me to take you to the Create Ad page? [Link: /dashboard/create-ad]",
+    'help': "I can help you navigate the site and understand its features. For example, you can ask me 'how to create an ad' or 'how to add money'. How can I assist you?",
+    'default': "I'm sorry, I seem to be having a temporary connection issue. However, I can still help you navigate! Try asking about creating ads, managing your financials, or the agency subscription."
+  };
+
+  if (lowerCaseQuery.includes('create') || lowerCaseQuery.includes('ad')) {
+    return responses['create ad'];
+  }
+  if (lowerCaseQuery.includes('money') || lowerCaseQuery.includes('balance') || lowerCaseQuery.includes('financials') || lowerCaseQuery.includes('referral')) {
+    return responses['money'];
+  }
+  if (lowerCaseQuery.includes('agency') || lowerCaseQuery.includes('subscription')) {
+    return responses['agency'];
+  }
+   if (lowerCaseQuery.includes('bonus') || lowerCaseQuery.includes('welcome')) {
+    return responses['bonus'];
+  }
+  if (lowerCaseQuery.includes('help') || lowerCaseQuery.includes('support')) {
+    return responses['help'];
+  }
+
+  return responses.default;
+}
+
+
 const intelligentAssistantFlow = ai.defineFlow(
   {
     name: 'intelligentAssistantFlow',
@@ -84,19 +118,17 @@ const intelligentAssistantFlow = ai.defineFlow(
     }
 
     try {
-      // Explicitly pass the API key to the model to override any other configuration issues.
+      // Check for API key existence. If it doesn't exist, go straight to fallback.
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
-        throw new GenkitError({
-            status: 'FAILED_PRECONDITION',
-            message: 'GEMINI_API_KEY is not set in the environment. Please add it to your .env file.',
-        });
+        return { response: getFallbackResponse(query) };
       }
+
       const model = googleAI.model('gemini-pro', { apiKey });
 
       // Correctly build the history for the model.
       const historyForModel = (history || []).map(msg => ({
-        role: msg.role === 'user' ? 'user' as const : 'model' as const,
+        role: msg.role === 'user' ? ('user' as const) : ('model' as const),
         content: [{ text: msg.content }],
       }));
 
@@ -108,25 +140,17 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
 
       const response = result.text;
-
+      
       if (!response) {
-        return { response: "I'm sorry, I couldn't get a response. Please try again." };
+         return { response: getFallbackResponse(query) };
       }
 
       return { response };
-    } catch (e: any) {
-      console.error('Error in intelligentAssistantFlow:', e);
-      
-      // Provide a more user-friendly and actionable error message
-      const friendlyMessage = 
-        'Sorry, I seem to be having trouble connecting to my brain right now. ' +
-        'This is likely an issue with the Google AI API configuration. ' +
-        'Please check that the `GEMINI_API_KEY` is set correctly in your .env file and that the associated Google Cloud project has billing and the "Generative Language API" enabled.';
 
-      throw new GenkitError({
-        status: 'INTERNAL',
-        message: friendlyMessage,
-      });
+    } catch (e: any) {
+      console.error('Error in intelligentAssistantFlow:', e.message);
+      // Instead of throwing an error that crashes the app, we return a helpful fallback response.
+      return { response: getFallbackResponse(query) };
     }
   }
 );
