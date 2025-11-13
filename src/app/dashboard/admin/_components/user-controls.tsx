@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Ban, CircleDollarSign, ShieldCheck } from 'lucide-react';
@@ -21,6 +22,7 @@ import type { User } from '@/lib/db';
 
 export function UserControls({ user }: { user: User }) {
   const [amountToAdd, setAmountToAdd] = useState<number>(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const isSuspended = user.status === 'suspended';
 
   const handleToggleStatus = async () => {
@@ -40,7 +42,8 @@ export function UserControls({ user }: { user: User }) {
     try {
       await addUserBalance(user.id, amountToAdd);
       toast.success(`تمت إضافة ${amountToAdd.toFixed(2)}$ إلى رصيد المستخدم.`);
-      setAmountToAdd(0); // Reset input after adding
+      setAmountToAdd(0);
+      setDialogOpen(false); 
     } catch (error) {
       toast.error('فشل في إضافة الرصيد.');
     }
@@ -48,30 +51,32 @@ export function UserControls({ user }: { user: User }) {
 
   return (
     <div className="flex items-center justify-end gap-2">
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogTrigger asChild>
           <Button variant="outline" size="sm" aria-label="Add Balance"><CircleDollarSign className="h-4 w-4" /></Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>إضافة رصيد إلى {user.name}</AlertDialogTitle>
-            <AlertDialogDescription>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إضافة رصيد إلى {user.name}</DialogTitle>
+            <DialogDescription>
               أدخل المبلغ الذي تريد إضافته إلى رصيد هذا المستخدم. سيتم تحديث رصيده على الفور في قاعدة البيانات.
-            </AlertDialogDescription>
-            <Input
+            </DialogDescription>
+          </DialogHeader>
+          <Input
               type="number"
               placeholder="مثال: 50"
               value={amountToAdd || ''}
               onChange={(e) => setAmountToAdd(parseFloat(e.target.value))}
               className="mt-4"
             />
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setAmountToAdd(0)}>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleAddBalance}>إضافة الرصيد</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <DialogFooter>
+            <DialogClose asChild>
+                <Button variant="outline" onClick={() => setAmountToAdd(0)}>إلغاء</Button>
+            </DialogClose>
+            <Button onClick={handleAddBalance}>إضافة الرصيد</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <AlertDialog>
         <AlertDialogTrigger asChild>
