@@ -7,12 +7,18 @@ import { Label } from '@/components/ui/label';
 import { Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    if (typeof window !== 'undefined') {
+      // Simulate login by storing the user identifier
+      sessionStorage.setItem('loggedInUserEmail', email);
+    }
     router.push('/dashboard');
   };
 
@@ -31,7 +37,15 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2 text-right">
               <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input id="email" type="email" placeholder="name@example.com" required dir="ltr" />
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="name@example.com" 
+                required 
+                dir="ltr"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <div className="space-y-2 text-right">
               <Label htmlFor="password">كلمة المرور</Label>

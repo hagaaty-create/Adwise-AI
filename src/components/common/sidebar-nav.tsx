@@ -14,7 +14,6 @@ import {
 import {
   LayoutDashboard,
   Megaphone,
-  Bot,
   BrainCircuit,
   Wallet,
   Briefcase,
@@ -31,13 +30,19 @@ import { useLanguage } from '@/context/language-context';
 
 // Simple auth simulation hook
 const useAuth = () => {
-  // In a real app, this would be a proper authentication context
-  // For now, we'll hardcode the admin user for demonstration
   const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
-    // We assume the logged-in user is 'ahmed.ali@example.com' which we treat as admin
-    // This is a placeholder for a real auth check
-    setIsAdmin(true); // In this prototype, we'll assume the user is always the admin.
+    // This is a placeholder for a real auth check.
+    // We check the sessionStorage for the admin email.
+    if (typeof window !== 'undefined') {
+      const loggedInUserEmail = sessionStorage.getItem('loggedInUserEmail');
+      // The admin user is hardcoded in the database seed.
+      if (loggedInUserEmail === 'ahmed.ali@example.com') {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    }
   }, []);
   return { isAdmin };
 }
