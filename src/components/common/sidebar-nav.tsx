@@ -54,7 +54,6 @@ const useAuth = () => {
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const { isAdmin } = useAuth();
   const { translations } = useLanguage();
 
   const navItems = [
@@ -65,9 +64,6 @@ export function SidebarNav() {
     { href: '/blog', icon: BookOpen, label: 'Blog', isPublic: true },
   ];
   
-  const adminNavItems = [
-      { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
-  ];
 
   return (
     <Sidebar collapsible="icon">
@@ -98,28 +94,6 @@ export function SidebarNav() {
             )
           })}
         </SidebarMenu>
-
-        {isAdmin && (
-            <>
-                <hr className="my-4 border-sidebar-border" />
-                <SidebarMenu>
-                    {adminNavItems.map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname.startsWith(item.href)}
-                        tooltip={item.label}
-                    >
-                        <Link href={item.href}>
-                        <item.icon />
-                        <span>{item.label}</span>
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
-                </SidebarMenu>
-            </>
-        )}
 
       </SidebarContent>
       <SidebarFooter>

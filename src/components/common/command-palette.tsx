@@ -50,12 +50,6 @@ const navItems = [
     { href: '/blog', icon: BookOpen, label: 'المدونة', isPublic: true },
 ];
 
-const adminNavItems = [
-    { href: '/dashboard/admin', icon: Shield, label: 'لوحة المسؤول' },
-    { href: '/dashboard/admin/articles', icon: Newspaper, label: 'إدارة المقالات' },
-    { href: '/dashboard/admin/site-marketing', icon: BrainCircuit, label: 'تسويق الموقع' },
-];
-
 const gitCommands = `git add .
 git commit -m "feat: Stabilize and finalize AI features"
 git push origin main`;
@@ -125,21 +119,6 @@ export function CommandPalette() {
             ))}
           </CommandGroup>
            <CommandSeparator />
-          <CommandGroup heading="المسؤول">
-            {adminNavItems.map((item) => (
-                <CommandItem
-                key={item.href}
-                value={`Admin ${item.label}`}
-                onSelect={() => {
-                    runCommand(() => router.push(item.href));
-                }}
-                >
-                <item.icon className="mr-2 h-4 w-4" />
-                {item.label}
-                </CommandItem>
-            ))}
-          </CommandGroup>
-          <CommandSeparator />
            <CommandGroup heading="الإجراءات">
             <CommandItem
               value="Publish"
