@@ -57,7 +57,7 @@ export async function createAutomatedAdCampaign(input: AutomatedAdCampaignInput)
   }
 }
 
-const automatedAdCampaignPrompt = ai?.definePrompt({
+const automatedAdCampaignPrompt = ai.definePrompt({
   name: 'automatedAdCampaignPrompt',
   input: {schema: AutomatedAdCampaignInputSchema},
   output: {schema: AutomatedAdCampaignOutputSchema},
@@ -85,7 +85,7 @@ Your entire response must be in the specified JSON format.
 `,
 });
 
-const automatedAdCampaignFlow = ai?.defineFlow(
+const automatedAdCampaignFlow = ai.defineFlow(
   {
     name: 'automatedAdCampaignFlow',
     inputSchema: AutomatedAdCampaignInputSchema,

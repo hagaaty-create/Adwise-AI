@@ -56,7 +56,7 @@ export async function automatedSiteManagement(
   }
 }
 
-const prompt = ai?.definePrompt({
+const prompt = ai.definePrompt({
   name: 'automatedSiteManagementPrompt',
   input: {schema: AutomatedSiteManagementInputSchema},
   output: {schema: AutomatedSiteManagementOutputSchema},
@@ -73,7 +73,7 @@ Your task is to act autonomously. You will perform a continuous cycle of analysi
 Your final output must be a single JSON object matching the specified format.`,
 });
 
-const automatedSiteManagementFlow = ai?.defineFlow(
+const automatedSiteManagementFlow = ai.defineFlow(
   {
     name: 'automatedSiteManagementFlow',
     inputSchema: AutomatedSiteManagementInputSchema,

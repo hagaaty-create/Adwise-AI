@@ -40,7 +40,7 @@ export async function smartAdReview(input: SmartAdReviewInput): Promise<SmartAdR
   }
 }
 
-const prompt = ai?.definePrompt({
+const prompt = ai.definePrompt({
   name: 'smartAdReviewPrompt',
   input: {schema: SmartAdReviewInputSchema},
   output: {schema: SmartAdReviewOutputSchema},
@@ -59,7 +59,7 @@ Consider the following:
 - Clarity and accuracy of the message`,
 });
 
-const smartAdReviewFlow = ai?.defineFlow(
+const smartAdReviewFlow = ai.defineFlow(
   {
     name: 'smartAdReviewFlow',
     inputSchema: SmartAdReviewInputSchema,

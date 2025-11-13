@@ -80,7 +80,7 @@ const systemInstruction = `You are "Hagaaty AI Assistant", a friendly, expert AI
 - Keep answers concise and to the point.
 - When asked about your identity, introduce yourself as the "Hagaaty AI Assistant".`;
 
-const intelligentAssistantFlow = ai?.defineFlow(
+const intelligentAssistantFlow = ai.defineFlow(
   {
     name: 'intelligentAssistantFlow',
     inputSchema: AssistUserInputSchema,
