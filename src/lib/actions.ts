@@ -130,14 +130,17 @@ export async function requestWithdrawal(amount: number, phoneNumber: string) {
         if (resend) {
             try {
                 await resend.emails.send({
-                    from: 'Hagaaty <onboarding@resend.dev>', // Should be a configured domain
+                    from: 'Hagaaty Platform <onboarding@resend.dev>', // Should be a configured domain
                     to: 'hagaaty@gmail.com',
                     subject: `New Withdrawal Request (#${withdrawalId.substring(0, 4)})`,
                     html: `
                         <h1>New Withdrawal Request</h1>
-                        <p><strong>User:</strong> ${user.name} (${user.email})</p>
-                        <p><strong>Amount:</strong> $${parsedAmount.toFixed(2)}</p>
-                        <p><strong>Vodafone Cash Number:</strong> ${parsedPhoneNumber}</p>
+                        <p>A new withdrawal request has been submitted on the Hagaaty platform.</p>
+                        <ul>
+                            <li><strong>User:</strong> ${user.name} (${user.email})</li>
+                            <li><strong>Amount:</strong> $${parsedAmount.toFixed(2)}</li>
+                            <li><strong>Vodafone Cash Number:</strong> ${parsedPhoneNumber}</li>
+                        </ul>
                         <p>Please process this request and mark it as completed in the admin panel.</p>
                     `,
                 });

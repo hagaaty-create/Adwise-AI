@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -32,9 +33,9 @@ import { useLanguage } from '@/context/language-context';
 // Simple auth simulation hook
 const useAuth = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // We need to use useEffect to avoid hydration errors, as sessionStorage is client-side only.
   useEffect(() => {
-    // This is a placeholder for a real auth check.
-    // We check the sessionStorage for the admin email.
     if (typeof window !== 'undefined') {
       const loggedInUserEmail = sessionStorage.getItem('loggedInUserEmail');
       // The admin user is now hagaaty@gmail.com as defined in the database seed.
@@ -44,7 +45,8 @@ const useAuth = () => {
         setIsAdmin(false);
       }
     }
-  }, []);
+  }, []); // Empty dependency array means this runs once on the client after mount.
+
   return { isAdmin };
 }
 
@@ -99,7 +101,7 @@ export function SidebarNav() {
           })}
         </SidebarMenu>
 
-        {isAdmin && adminNavItems.length > 0 && (
+        {isAdmin && (
             <>
                 <hr className="my-4 border-sidebar-border" />
                 <SidebarMenu>

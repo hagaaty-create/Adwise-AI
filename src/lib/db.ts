@@ -67,11 +67,11 @@ export async function seed() {
     // Insert initial admin user
     await sql`
         INSERT INTO users (id, name, email, balance, status, referral_earnings)
-        VALUES ('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 'Hagaaty Admin', 'hagaaty@gmail.com', 4.00, 'active', 25.00)
+        VALUES ('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 'Hagaaty Admin', 'hagaaty@gmail.com', 4.00, 'active', 0.00)
         ON CONFLICT (email) DO UPDATE SET 
             name = EXCLUDED.name,
             status = EXCLUDED.status,
-            referral_earnings = 25.00,
+            referral_earnings = 0.00,
             balance = 4.00;
     `;
     console.log(`Seeded admin user`);

@@ -32,7 +32,34 @@ const AssistUserOutputSchema = z.object({
 });
 export type AssistUserOutput = z.infer<typeof AssistUserOutputSchema>;
 
+
+// --- MOCKED AI IMPLEMENTATION ---
+async function runMockedAssistant(input: AssistUserInput): Promise<AssistUserOutput> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const query = input.query.toLowerCase();
+
+    let response = "I'm sorry, I don't understand that. Can you please rephrase? You can ask me about creating ads, financials, or the agency subscription.";
+
+    if (query.includes('create') || query.includes('ad') || query.includes('campaign')) {
+        response = "You can create a new Google Ad campaign on the 'Create Ad' page. You can use your $4 welcome bonus to get started. Would you like me to take you to the Create Ad page? [Link: /dashboard/create-ad]";
+    } else if (query.includes('money') || query.includes('balance') || query.includes('financials') || query.includes('top-up')) {
+        response = "You can manage your balance, top-up your account, and see your referral earnings on the 'Financials' page. Would you like me to take you to the Financials page? [Link: /dashboard/financials]";
+    } else if (query.includes('agency') || query.includes('subscription')) {
+        response = "The Agency subscription offers unlimited ad accounts and priority support for $50/year. Would you like me to take you to the Agency page? [Link: /dashboard/subscription]";
+    } else if (query.includes('hello') || query.includes('hi')) {
+        response = "Hello! I am the Hagaaty AI Assistant. How can I help you today?";
+    }
+
+    return { response };
+}
+
 export async function assistUser(input: AssistUserInput): Promise<AssistUserOutput> {
+  // If the AI key is not present, run the mocked version.
+  if (!process.env.GEMINI_API_KEY) {
+      console.log("Running in mocked AI mode for assistant.");
+      return runMockedAssistant(input);
+  }
+
   if (!ai) {
     console.error('AI service is not available. GEMINI_API_KEY might be missing.');
     throw new Error("The AI Assistant is not configured correctly. The API key is missing. Please contact support.");

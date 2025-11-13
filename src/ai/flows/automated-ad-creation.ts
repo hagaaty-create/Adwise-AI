@@ -44,7 +44,39 @@ const AutomatedAdCampaignOutputSchema = z.object({
 });
 export type AutomatedAdCampaignOutput = z.infer<typeof AutomatedAdCampaignOutputSchema>;
 
+// --- MOCKED AI IMPLEMENTATION ---
+async function runMockedAdCampaign(input: AutomatedAdCampaignInput): Promise<AutomatedAdCampaignOutput> {
+    // Simulate a delay as if the AI is working
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Generate a plausible, mocked response
+    const { budget, headline, productDescription } = input;
+    const predictedReach = budget * (1500 + Math.floor(Math.random() * 500)); // e.g., 1500-2000 impressions per dollar
+    const predictedConversions = Math.floor(predictedReach * (0.02 + Math.random() * 0.03)); // 2-5% CTR
+
+    const generatedAdCopy = `Boost your success with "${headline}"! ${productDescription.substring(0, 80)}... Discover the difference today and see real results. Act now for a special offer!`;
+    
+    return {
+        campaignSummaries: [
+            {
+                platform: 'Google',
+                adCopy: generatedAdCopy,
+                predictedReach,
+                predictedConversions,
+                estimatedCost: budget,
+            }
+        ]
+    };
+}
+
+
 export async function createAutomatedAdCampaign(input: AutomatedAdCampaignInput): Promise<AutomatedAdCampaignOutput> {
+  // If the AI key is not present, run the mocked version.
+  if (!process.env.GEMINI_API_KEY) {
+      console.log("Running in mocked AI mode for ad creation.");
+      return runMockedAdCampaign(input);
+  }
+
   if (!ai) {
       console.error('AI service is not available. GEMINI_API_KEY might be missing.');
       throw new Error("The AI service is not configured. The GEMINI_API_KEY is missing. Please contact support.");
