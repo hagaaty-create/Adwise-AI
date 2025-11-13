@@ -48,7 +48,7 @@ const navItems = [
 ];
 
 const gitCommands = `git add .
-git commit -m "feat: Final updates"
+git commit -m "feat: Finalize and integrate all features"
 git push origin main`;
 
 export function CommandPalette() {
