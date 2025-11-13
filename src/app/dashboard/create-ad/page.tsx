@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Wand2 } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
+import { addUserBalance } from '@/lib/actions';
 
 const formSchema = z.object({
   headline: z.string().min(10, { message: 'Headline must be at least 10 characters.' }),
@@ -85,15 +86,13 @@ export default function CreateAdPage() {
       existingCampaigns.push(newCampaign);
       sessionStorage.setItem('userCampaigns', JSON.stringify(existingCampaigns));
 
-      const transaction = {
-        id: `trx-${Date.now()}`,
-        date: new Date().toISOString().split('T')[0],
-        description: `Ad Campaign: ${values.headline}`,
-        amount: -values.budget,
-        type: 'debit',
-      };
-      sessionStorage.setItem('newTransaction', JSON.stringify(transaction));
-      window.dispatchEvent(new Event('storage')); // Notify other tabs/components
+      // This is a client-side update for demo purposes.
+      // In a real app, you would have a dedicated server action to handle the transaction securely.
+      // We are "spending" the budget here. The userID is hardcoded for the demo.
+      await addUserBalance('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', -values.budget);
+      sessionStorage.setItem('newTransaction', 'true');
+      window.dispatchEvent(new Event('storage'));
+
 
       toast.success('Google Ad campaign generated successfully!', {
         description: 'Your campaign is now under review and can be tracked on the My Campaigns page.'

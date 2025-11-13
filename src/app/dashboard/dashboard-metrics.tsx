@@ -23,12 +23,17 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
         setBalance(defaultBalance);
       }
     }
+    
+    const handleStorageChange = () => {
+        // When a transaction happens, refetch the balance
+        if (sessionStorage.getItem('newTransaction')) {
+            fetchBalance();
+            sessionStorage.removeItem('newTransaction');
+        }
+    };
+    
     fetchBalance();
     
-    // Also listen for storage events to update balance if changed elsewhere
-    const handleStorageChange = () => {
-        fetchBalance();
-    };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
 
@@ -41,7 +46,7 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
       const totalAdSpend = savedCampaigns.reduce((sum, campaign) => sum + campaign.adSpend, 0);
       setAdSpend(totalAdSpend);
 
-      const activeCount = savedCampaigns.filter(c => c.status === 'active').length;
+      const activeCount = savedCampaigns.filter(c => c.status === 'active' || c.status === 'review').length;
       setActiveCampaignsCount(activeCount);
     };
 
@@ -54,7 +59,12 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
     };
   }, []);
 
-  const activeCampaignsText = activeCampaignsCount === 1 ? translations.dashboard.metrics.activeCampaigns.one : (activeCampaignsCount > 1 ? `${activeCampaignsCount} campaigns are running` : translations.dashboard.metrics.activeCampaigns.none);
+  const activeCampaignsText = activeCampaignsCount === 1 
+    ? translations.dashboard.metrics.activeCampaigns.one 
+    : (activeCampaignsCount > 1 
+        ? `${activeCampaignsCount} campaigns are running` 
+        : translations.dashboard.metrics.activeCampaigns.none);
+
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

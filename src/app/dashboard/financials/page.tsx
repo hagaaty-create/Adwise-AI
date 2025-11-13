@@ -6,63 +6,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Wallet, Gift, Copy, Loader2, AlertTriangle } from 'lucide-react';
+import { Wallet, Gift, Copy, Loader2, AlertTriangle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
-import { getBalance } from '@/lib/actions';
-
-
-const initialTransactionsData = [
-  { id: 'trx-001', date: new Date().toISOString().split('T')[0], description: 'Welcome Bonus', amount: 4.00, type: 'credit' as const },
-];
-
-type Transaction = typeof initialTransactionsData[0];
+import { getBalance, getTransactions, addTransaction } from '@/lib/actions';
+import type { Transaction } from '@/lib/db';
 
 export default function FinancialsPage() {
   const referralLink = "https://hagaaty.com/ref/user123";
   const [balance, setBalance] = useState<number | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactionsData);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [topUpAmount, setTopUpAmount] = useState('');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  const processSessionTransaction = (currentBalance: number | null, currentTransactions: Transaction[]): { newBalance: number | null, newTransactions: Transaction[] } => {
-      const newTransactionStr = sessionStorage.getItem('newTransaction');
-      if (newTransactionStr) {
-          const newTransaction: Transaction = JSON.parse(newTransactionStr);
-          if (!currentTransactions.some(t => t.id === newTransaction.id)) {
-              const updatedTransactions = [...currentTransactions, newTransaction];
-              const updatedBalance = currentBalance !== null ? currentBalance + newTransaction.amount : newTransaction.amount;
-              return { newBalance: updatedBalance, newTransactions: updatedTransactions };
-          }
-      }
-      return { newBalance: currentBalance, newTransactions: currentTransactions };
-  };
-  
-  useEffect(() => {
-    async function loadData() {
+  const fetchFinancialData = async () => {
       setIsLoading(true);
       setError(null);
-      
       try {
-        const dbBalance = await getBalance();
-        
-        const { newBalance, newTransactions } = processSessionTransaction(dbBalance, initialTransactionsData);
-        setBalance(newBalance);
-        setTransactions(newTransactions);
-
+        const [dbBalance, dbTransactions] = await Promise.all([
+          getBalance(),
+          getTransactions(),
+        ]);
+        setBalance(dbBalance);
+        setTransactions(dbTransactions as Transaction[]);
       } catch (e: any) {
         console.error("Failed to fetch financials:", e);
-        setError("Failed to connect to the database. Displaying local data. Your balance might not be up-to-date.");
-        // Even if DB fails, check session storage for pending transactions
-        const { newBalance, newTransactions } = processSessionTransaction(4.00, initialTransactionsData); // Start with default balance
-        setBalance(newBalance);
-        setTransactions(newTransactions);
-
+        setError("Failed to connect to the database. Please try again later.");
+        setBalance(0);
+        setTransactions([]);
       } finally {
         setIsLoading(false);
       }
-    }
-    loadData();
+    };
+  
+  useEffect(() => {
+    fetchFinancialData();
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      // Refetch data if a new transaction was posted from another tab
+      if (event.key === 'newTransaction') {
+        fetchFinancialData();
+        sessionStorage.removeItem('newTransaction');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const copyToClipboard = () => {
@@ -72,32 +63,58 @@ export default function FinancialsPage() {
     });
   };
 
-  const handleTopUp = () => {
+  const handleTopUp = async () => {
     const amount = parseFloat(topUpAmount);
     if (!amount || amount <= 0) {
       toast.error('الرجاء إدخال مبلغ صحيح.');
       return;
     }
-    toast.info('سيتم توجيهك للدفع', {
-      description: `جارٍ معالجة إضافة ${amount.toFixed(2)}$ إلى رصيدك.`,
+
+    setIsProcessingPayment(true);
+    toast.info('سيتم توجيهك إلى Binance Pay الآن...', {
+      description: `جارٍ إنشاء معاملة لإضافة ${amount.toFixed(2)}$ إلى رصيدك.`,
     });
+
+    try {
+        // In a real app, you would generate a unique order ID and call Binance API.
+        // For this demo, we will simulate this process.
+        // Step 1: Simulate creating a payment link.
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API latency
+        const binancePayUrl = 'https://pay.binance.com/en/checkout/...' // This is a fake URL
+
+        // Step 2: Simulate a successful payment by adding the transaction to our DB.
+        // The user ID '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7' is the hardcoded ID for 'ahmed.ali@example.com'.
+        const description = `Top-up via Binance: $${amount.toFixed(2)}`;
+        await addTransaction('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', amount, description);
+        
+        // Step 3: Inform other components and refetch data
+        sessionStorage.setItem('newTransaction', 'true');
+        window.dispatchEvent(new Event('storage'));
+        await fetchFinancialData();
+        setTopUpAmount(''); // Reset input
+
+        // Step 4: Show success and "redirect"
+        toast.success('تم إنشاء طلب الدفع بنجاح!', {
+            description: 'لأغراض العرض، تم تحديث رصيدك. في التطبيق الحقيقي، سيتم تحديثه بعد تأكيد الدفع.',
+            action: {
+                label: 'اذهب إلى Binance Pay',
+                onClick: () => window.open(binancePayUrl, '_blank')
+            },
+        });
+
+    } catch (e) {
+        console.error(e);
+        toast.error('فشل إنشاء طلب الدفع.', {
+            description: 'حدث خطأ غير متوقع. الرجاء المحاولة مرة أخرى.'
+        });
+    } finally {
+        setIsProcessingPayment(false);
+    }
   };
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 grid gap-6">
-        {error && (
-            <Card className="border-destructive">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-destructive">
-                        <AlertTriangle /> خطأ في الاتصال
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm">{error}</p>
-                </CardContent>
-            </Card>
-        )}
         <Card>
           <CardHeader>
             <CardTitle>شحن الرصيد</CardTitle>
@@ -112,10 +129,14 @@ export default function FinancialsPage() {
                 placeholder="50.00" 
                 value={topUpAmount}
                 onChange={(e) => setTopUpAmount(e.target.value)}
+                disabled={isProcessingPayment}
               />
             </div>
-            <p className="text-sm text-muted-foreground">طرق الدفع: Binance (يدوي) ، المحافظ الإلكترونية (فودافون كاش ، إلخ)</p>
-            <Button onClick={handleTopUp}>متابعة للدفع</Button>
+            <p className="text-sm text-muted-foreground">طرق الدفع: Binance Pay (تجريبي)</p>
+            <Button onClick={handleTopUp} disabled={isProcessingPayment}>
+                {isProcessingPayment ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
+                متابعة إلى Binance Pay
+            </Button>
           </CardContent>
         </Card>
         <Card>
@@ -123,6 +144,13 @@ export default function FinancialsPage() {
             <CardTitle>سجل المعاملات</CardTitle>
           </CardHeader>
           <CardContent>
+            {error && (
+                <div className="text-center p-4 text-destructive-foreground bg-destructive/80 rounded-md">
+                    <AlertTriangle className="mx-auto h-6 w-6 mb-2" />
+                    <p className="font-semibold">خطأ في الاتصال</p>
+                    <p className="text-sm">{error}</p>
+                </div>
+            )}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -134,20 +162,26 @@ export default function FinancialsPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center">
-                      <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                    <TableCell colSpan={3} className="text-center h-24">
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
                     </TableCell>
                   </TableRow>
-                ) : (
-                  transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((transaction) => (
+                ) : transactions.length > 0 ? (
+                  transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((transaction) => (
                     <TableRow key={transaction.id}>
-                      <TableCell>{transaction.date}</TableCell>
+                      <TableCell>{new Date(transaction.created_at).toLocaleDateString('ar-EG')}</TableCell>
                       <TableCell className="font-medium">{transaction.description}</TableCell>
-                      <TableCell className={`text-right font-semibold ${transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
-                        {transaction.type === 'credit' ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
+                      <TableCell className={`text-right font-semibold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {transaction.amount > 0 ? '+' : ''}${transaction.amount.toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center h-24 text-muted-foreground">
+                            لا توجد معاملات لعرضها.
+                        </TableCell>
+                    </TableRow>
                 )}
               </TableBody>
             </Table>
@@ -169,7 +203,7 @@ export default function FinancialsPage() {
             ) : (
               <>
                 <div className="text-2xl font-bold">${balance.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">الرصيد من قاعدة البيانات</p>
+                <p className="text-xs text-muted-foreground">مزامنة من قاعدة البيانات</p>
               </>
             )}
           </CardContent>

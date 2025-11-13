@@ -25,6 +25,15 @@ export type Article = {
     created_at: Date;
 };
 
+export type Transaction = {
+  id: string;
+  user_id: string;
+  amount: number;
+  description: string;
+  created_at: string;
+};
+
+
 export async function seed() {
   try {
     await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -40,25 +49,37 @@ export async function seed() {
     `;
     console.log(`Created "users" table`);
  
-    const initialUsers: Omit<User, 'id'>[] = [
-        { name: 'Ahmed Ali', email: 'ahmed.ali@example.com', balance: 4.00, status: 'active' },
-        { name: 'Fatima Zahra', email: 'fatima.zahra@example.com', balance: 50.00, status: 'active' },
-        { name: 'Youssef Hassan', email: 'youssef.hassan@example.com', balance: 120.00, status: 'suspended' },
-    ];
-    
-    // Insert data into the "users" table
-    await Promise.all(
-        initialUsers.map(async (user) => {
-            return sql`
-                INSERT INTO users (name, email, balance, status)
-                VALUES (${user.name}, ${user.email}, ${user.balance}, ${user.status})
-                ON CONFLICT (email) DO NOTHING;
-            `;
-        })
-    );
-     console.log(`Seeded ${initialUsers.length} users`);
+    // Insert initial admin user
+    await sql`
+        INSERT INTO users (id, name, email, balance, status)
+        VALUES ('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 'Ahmed Ali', 'ahmed.ali@example.com', 4.00, 'active')
+        ON CONFLICT (email) DO NOTHING;
+    `;
+    console.log(`Seeded admin user`);
 
-    // Create the campaigns table if it doesn't exist
+    // Create the transactions table
+    await sql`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        amount NUMERIC(10, 2) NOT NULL,
+        description VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    console.log(`Created "transactions" table`);
+    
+    // Insert welcome bonus transaction for admin user
+    await sql`
+        INSERT INTO transactions (user_id, amount, description)
+        SELECT '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 4.00, 'Welcome Bonus'
+        WHERE NOT EXISTS (
+            SELECT 1 FROM transactions WHERE user_id = '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7' AND description = 'Welcome Bonus'
+        );
+    `;
+    console.log('Seeded welcome bonus transaction');
+
+    // Create the campaigns table
     await sql`
         CREATE TABLE IF NOT EXISTS campaigns (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -70,33 +91,7 @@ export async function seed() {
     `;
     console.log(`Created "campaigns" table`);
 
-    const initialCampaigns = [
-        { user_name: 'Ahmed Ali', headline: 'مستقبل الإعلان بالذكاء الاصطناعي هنا', status: 'active' },
-        { user_name: 'Fatima Zahra', headline: 'خصم 50% على منتجات الصيف', status: 'active' },
-    ];
-
-    // Get user IDs to link campaigns
-    const ahmed = await sql`SELECT id from USERS where email='ahmed.ali@example.com'`;
-    const fatima = await sql`SELECT id from USERS where email='fatima.zahra@example.com'`;
-
-    // Insert data into the "campaigns" table
-    if (ahmed.rows.length > 0 && fatima.rows.length > 0) {
-        await Promise.all([
-            sql`
-                INSERT INTO campaigns (user_id, user_name, headline, status)
-                VALUES (${ahmed.rows[0].id}, ${initialCampaigns[0].user_name}, ${initialCampaigns[0].headline}, ${initialCampaigns[0].status})
-                ON CONFLICT (id) DO NOTHING;
-            `,
-            sql`
-                INSERT INTO campaigns (user_id, user_name, headline, status)
-                VALUES (${fatima.rows[0].id}, ${initialCampaigns[1].user_name}, ${initialCampaigns[1].headline}, ${initialCampaigns[1].status})
-                ON CONFLICT (id) DO NOTHING;
-            `,
-        ]);
-        console.log(`Seeded ${initialCampaigns.length} campaigns`);
-    }
-
-    // Create the articles table if it doesn't exist
+    // Create the articles table
     await sql`
       CREATE TABLE IF NOT EXISTS articles (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -108,7 +103,6 @@ export async function seed() {
       );
     `;
     console.log(`Created "articles" table`);
-
 
   } catch (error) {
     console.error('Error seeding database:', error);
