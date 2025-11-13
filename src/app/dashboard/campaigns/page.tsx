@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Loader2, Megaphone, Clock, CheckCircle, BarChart2, DollarSign, Eye, MousePointerClick, Info, Link as LinkIcon } from 'lucide-react';
+import { Loader2, Megaphone, Clock, CheckCircle, BarChart2, DollarSign, Eye, MousePointerClick, Info, Link as LinkIcon, Phone } from 'lucide-react';
 import Link from 'next/link';
 
 export type CampaignStatus = 'pending' | 'review' | 'active' | 'finished';
@@ -14,6 +14,7 @@ export interface Campaign {
   id: string;
   headline: string;
   websiteUrl: string;
+  phoneNumber?: string;
   status: CampaignStatus;
   adCopy: string;
   predictedReach: number;
@@ -203,6 +204,15 @@ export default function CampaignsPage() {
                                                     {campaign.websiteUrl}
                                                 </a>
                                             </div>
+                                            {campaign.phoneNumber && (
+                                              <div>
+                                                  <h4 className="font-semibold mb-2">رقم الهاتف للاتصال</h4>
+                                                  <a href={`tel:${campaign.phoneNumber}`} className="text-sm text-primary bg-muted p-3 rounded-md flex items-center gap-2 hover:underline">
+                                                      <Phone className="h-4 w-4"/>
+                                                      {campaign.phoneNumber}
+                                                  </a>
+                                              </div>
+                                            )}
                                         </CardContent>
                                     </Card>
                                </div>

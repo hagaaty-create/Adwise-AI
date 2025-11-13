@@ -19,6 +19,7 @@ const AutomatedAdCampaignInputSchema = z.object({
   adName: z.string().describe('The name or headline of the ad campaign.'),
   productDescription: z.string().describe('A detailed description of the product or service being advertised.'),
   websiteUrl: z.string().url().describe('The destination website URL for the ad campaign.'),
+  phoneNumber: z.string().optional().describe('An optional phone number to create a call-specific ad.'),
   targetAudience: z.string().describe('Description of the target audience for the ad campaign, including age and interests.'),
   platforms: z.array(z.enum(['Google'])).describe('The platform to run the ad campaign on. Should always be Google.'),
   budget: z.number().describe('The total budget for the ad campaign.'),
@@ -72,6 +73,10 @@ Provide a realistic performance simulation. The estimated cost must exactly matc
 Ad Headline: {{{headline}}}
 Product/Service Description: {{{productDescription}}}
 Website URL: {{{websiteUrl}}}
+{{#if phoneNumber}}
+Phone Number for Call Ad: {{{phoneNumber}}}
+**Instruction**: A phone number is provided. Prioritize creating a "Call Ad" or make the phone number a primary call-to-action in the ad copy.
+{{/if}}
 Target Audience: {{{targetAudience}}}
 Keywords: {{{keywords}}}
 Location: {{{location}}}
@@ -81,6 +86,7 @@ Campaign Duration (days): {{{campaignDurationDays}}}
 
 For the Google platform, generate compelling ad copy (description), predict the reach (impressions) and conversions (clicks), and confirm the estimated cost is exactly the budget provided.
 The ad copy should be relevant to the website and product description.
+If a phone number is provided, craft the ad to encourage phone calls.
 Your entire response must be in the specified JSON format.
 `,
 });

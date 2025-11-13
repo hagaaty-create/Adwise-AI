@@ -21,6 +21,7 @@ const formSchema = z.object({
   headline: z.string().min(10, { message: 'Headline must be at least 10 characters.' }),
   productDescription: z.string().min(20, { message: 'Product description must be at least 20 characters.' }),
   websiteUrl: z.string().url({ message: 'Please enter a valid website URL.' }),
+  phoneNumber: z.string().optional(),
   keywords: z.string().min(3, { message: 'Please enter at least one keyword.' }),
   targetAudience: z.string().min(10, { message: 'Target audience must be at least 10 characters.' }),
   location: z.string().min(2, { message: 'Location is required.' }),
@@ -40,7 +41,8 @@ export default function CreateAdPage() {
     defaultValues: {
       headline: '',
       productDescription: '',
-      websiteUrl: '',
+      websiteUrl: 'https://',
+      phoneNumber: '',
       keywords: '',
       targetAudience: 'Professionals aged 25-45 interested in marketing technology.',
       location: 'Egypt',
@@ -60,6 +62,7 @@ export default function CreateAdPage() {
         adName: values.headline,
         productDescription: values.productDescription,
         websiteUrl: values.websiteUrl,
+        phoneNumber: values.phoneNumber,
         targetAudience: values.targetAudience,
         budget: values.budget,
         campaignDurationDays: values.campaignDurationDays,
@@ -73,6 +76,7 @@ export default function CreateAdPage() {
         id: `camp_${Date.now()}`,
         headline: values.headline,
         websiteUrl: values.websiteUrl,
+        phoneNumber: values.phoneNumber,
         status: 'review', // Starts in review
         adCopy: result.campaignSummaries[0].adCopy,
         predictedReach: result.campaignSummaries[0].predictedReach,
@@ -164,6 +168,20 @@ export default function CreateAdPage() {
                           <Input type="url" placeholder="https://example.com" {...field} dir="ltr" />
                         </FormControl>
                         <FormDescription>هذا هو الرابط الذي سيتم توجيه المستخدمين إليه.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>رقم الهاتف (اختياري)</FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="e.g., +201234567890" {...field} dir="ltr" />
+                        </FormControl>
+                         <FormDescription>أضف رقم هاتف لإنشاء إعلان اتصال.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
