@@ -37,47 +37,47 @@ async function runMockedAssistant(input: AssistUserInput): Promise<AssistUserOut
 
     // Greeting
     if (query.includes('hello') || query.includes('hi') || query.includes('welcome') || query.includes('مرحبا') || query.includes('أهلا')) {
-        return { response: "Hello! I am your Hagaaty AI assistant. How can I help you navigate the platform or understand its features today?" };
+        return { response: "أهلاً بك! أنا مساعدك الذكي من 'حاجاتي'. كيف يمكنني مساعدتك في استكشاف المنصة أو فهم ميزاتها اليوم؟" };
     }
     
     // Creating Ads
     if (query.includes('ad') || query.includes('campaign') || query.includes('create') || query.includes('إعلان') || query.includes('حملة')) {
-        return { response: "You can create a new Google Ad campaign from the 'Create Ad' page. There, you'll fill in your ad details like headline, description, keywords, and budget. Our AI will then generate the ad copy and launch it. Would you like me to take you there now? [Link: /dashboard/create-ad]" };
+        return { response: "يمكنك إنشاء حملة إعلانية جديدة على جوجل من صفحة 'إنشاء إعلان'. هناك، ستقوم بملء تفاصيل إعلانك مثل العنوان، الوصف، الكلمات المفتاحية، والميزانية. بعد ذلك، سيقوم الذكاء الاصطناعي بإنشاء نص الإعلان وإطلاقه. هل تود أن أنقلك إلى هناك الآن؟ [Link: /dashboard/create-ad]" };
     }
 
     // Checking Campaigns / Performance
     if (query.includes('my campaigns') || query.includes('performance') || query.includes('results') || query.includes('track') || query.includes('أداء') || query.includes('نتائج')) {
-        return { response: "You can monitor all your active and past campaigns on the 'My Campaigns' page. You can see detailed metrics like impressions, clicks, and ad spend for each one. Would you like me to take you to the My Campaigns page? [Link: /dashboard/campaigns]" };
+        return { response: "يمكنك متابعة جميع حملاتك النشطة والسابقة في صفحة 'حملاتي'. سترى هناك مقاييس مفصلة مثل مرات الظهور، النقرات، والمبلغ الذي تم إنفاقه لكل حملة. هل تود الذهاب إلى صفحة 'حملاتي'؟ [Link: /dashboard/campaigns]" };
     }
 
     // Financials / Balance / Top-up
     if (query.includes('money') || query.includes('balance') || query.includes('financials') || query.includes('top-up') || query.includes('deposit') || query.includes('رصيد') || query.includes('شحن') || query.includes('فلوس') || query.includes('ماليات')) {
-        return { response: "The 'Financials' page is your hub for all money-related activities. You can top-up your balance using various methods, track all your transactions, and manage your referral earnings. Would you like me to guide you to the Financials page? [Link: /dashboard/financials]" };
+        return { response: "صفحة 'الماليات' هي مركزك لكل الأنشطة المتعلقة بالأموال. يمكنك شحن رصيدك باستخدام طرق دفع متنوعة، تتبع جميع معاملاتك، وإدارة أرباح الإحالة الخاصة بك. هل تود أن أرشدك إلى صفحة 'الماليات'؟ [Link: /dashboard/financials]" };
     }
     
     // Referrals / Withdrawals
     if (query.includes('referral') || query.includes('withdraw') || query.includes('earnings') || query.includes('سحب') || query.includes('أرباح') || query.includes('إحالة')) {
-        return { response: "You can track your referral earnings and request a withdrawal from the 'Financials' page. Simply enter the amount you wish to withdraw and your Vodafone Cash number. Would you like to go to the Financials page now? [Link: /dashboard/financials]" };
+        return { response: "يمكنك تتبع أرباح الإحالة وطلب سحبها من صفحة 'الماليات'. ببساطة، أدخل المبلغ الذي ترغب في سحبه ورقم فودافون كاش الخاص بك. هل تود الذهاب إلى صفحة 'الماليات' الآن؟ [Link: /dashboard/financials]" };
     }
     
     // Admin Panel
     if (query.includes('admin') || query.includes('users') || query.includes('manage') || query.includes('مسؤول')) {
         // This response assumes the check for admin role is done on the frontend or via routing.
-        return { response: "The Admin Panel is for managing users, campaigns, and site content. It is restricted to administrators only. You can access it via the sidebar if you have the correct permissions. Would you like to try navigating to the Admin Panel? [Link: /dashboard/admin]" };
+        return { response: "لوحة تحكم المسؤول مخصصة لإدارة المستخدمين والحملات ومحتوى الموقع، وهي متاحة للمسؤولين فقط. يمكنك الوصول إليها من الشريط الجانبي إذا كانت لديك الصلاحيات اللازمة. هل تود محاولة الانتقال إلى لوحة تحكم المسؤول؟ [Link: /dashboard/admin]" };
     }
 
     // Blog / Articles
     if (query.includes('blog') || query.includes('articles') || query.includes('content') || query.includes('مقالات') || query.includes('مدونة')) {
-        return { response: "Our AI generates SEO-optimized articles about digital marketing. You can read them on our public blog to get the latest insights. Would you like me to take you to the Blog? [Link: /blog]" };
+        return { response: "يقوم الذكاء الاصطناعي لدينا بإنشاء مقالات محسّنة لمحركات البحث حول التسويق الرقمي. يمكنك قراءتها على مدونتنا العامة للاطلاع على أحدث الأفكار. هل تود أن أنقلك إلى المدونة؟ [Link: /blog]" };
     }
     
     // How it works / General help
     if (query.includes('how') || query.includes('help') || query.includes('work') || query.includes('كيف') || query.includes('مساعدة')) {
-        return { response: "I can help you with many things! You can ask me how to create an ad, check your campaign performance, manage your financials, or understand our referral program. What would you like to know more about?" };
+        return { response: "يمكنني مساعدتك في الكثير من الأمور! يمكنك أن تسألني عن كيفية إنشاء إعلان، أو التحقق من أداء حملتك، أو إدارة أموالك، أو فهم برنامج الإحالة. ما الذي تود معرفة المزيد عنه؟" };
     }
     
     // Default fallback response
-    let response = "I'm sorry, I'm not sure how to answer that. Please try rephrasing. You can ask me about:\n- Creating an ad\n- Checking campaign performance\n- Managing your balance and withdrawals\n- How the referral program works";
+    let response = "عذرًا، لست متأكدًا من كيفية الإجابة على ذلك. يرجى محاولة إعادة صياغة السؤال. يمكنك أن تسألني عن:\n- إنشاء إعلان\n- التحقق من أداء الحملة\n- إدارة رصيدك والسحوبات\n- كيف يعمل برنامج الإحالة";
 
     return { response };
 }

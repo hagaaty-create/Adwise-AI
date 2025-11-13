@@ -89,7 +89,7 @@ export default function CreateAdPage() {
         startDate: new Date().toISOString(),
       };
 
-      const existingCampaigns = JSON.parse(sessionStorage.getItem('userCampaigns') || '[]');
+      const existingCampaigns = JSON.parse(sessionStorage.getItem('userCampaigns') || '[]'`);
       existingCampaigns.push(newCampaign);
       sessionStorage.setItem('userCampaigns', JSON.stringify(existingCampaigns));
 

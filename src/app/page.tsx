@@ -71,13 +71,13 @@ export default function Home() {
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter mb-4 font-headline">
-              The Future of Advertising is Intelligent
+              مستقبل الإعلان أصبح ذكيًا
             </h2>
             <p className="text-lg text-muted-foreground mt-4 mb-8">
-              Launch, manage, and optimize your ad campaigns with the power of AI. Activation within 10 minutes.
+              أطلق حملاتك الإعلانية بالذكاء الاصطناعي، فعّلها خلال 10 دقائق فقط، وابدأ في متابعة النتائج فورًا.
             </p>
             <Button size="lg" asChild>
-              <Link href="/signup">Claim Your $4 Welcome Bonus</Link>
+              <Link href="/signup">احصل على 4$ مكافأة ترحيبية</Link>
             </Button>
           </div>
         </section>
@@ -100,9 +100,9 @@ export default function Home() {
 
         <section id="features" className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
           <div className="text-center mb-12">
-            <h3 className="text-3xl md:text-4xl font-bold tracking-tighter font-headline">A Smarter Way to Advertise</h3>
+            <h3 className="text-3xl md:text-4xl font-bold tracking-tighter font-headline">طريقة أذكى للإعلان</h3>
             <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">
-              Our AI-driven tools handle the heavy lifting, so you can focus on growing your business.
+              أدواتنا المدعومة بالذكاء الاصطناعي تتولى المهام المعقدة، لتركز أنت على تنمية أعمالك.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
