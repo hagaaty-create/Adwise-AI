@@ -5,13 +5,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { automatedSiteManagement, AutomatedSiteManagementOutput } from '@/ai/flows/automated-site-management';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Wand2, FileText, Key, FilePlus, Lightbulb } from 'lucide-react';
+import { Loader2, Wand2, FileText, Key, FilePlus, Lightbulb, Copy, Code } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
@@ -48,6 +49,11 @@ export default function SiteManagementPage() {
       setIsLoading(false);
     }
   }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("HTML code copied to clipboard!");
+  };
 
   return (
     <div className="grid gap-6">
@@ -151,6 +157,23 @@ export default function SiteManagementPage() {
                     className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap"
                     dangerouslySetInnerHTML={{ __html: result.generatedArticle.content.replace(/\n/g, '<br />') }}
                 />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <CardTitle className="flex items-center gap-2"><Code /> Google Sites Embed Code</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(result.googleSitesHtml)}>
+                        <Copy className="h-4 w-4" />
+                    </Button>
+                </div>
+              <CardDescription>Copy this code and paste it into an "Embed" block in your Google Site to publish the article instantly.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <pre className="p-4 bg-muted rounded-lg text-sm text-foreground overflow-x-auto">
+                    <code>{result.googleSitesHtml}</code>
+                </pre>
             </CardContent>
           </Card>
         </div>

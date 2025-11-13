@@ -40,6 +40,7 @@ const AutomatedSiteManagementOutputSchema = z.object({
     title: z.string().describe('The compelling, SEO-optimized title for the generated article.'),
     content: z.string().describe('The full, well-structured, and SEO-optimized article content, with a minimum of 500 words.'),
   }).describe('A complete, ready-to-publish article generated for the best suggested topic.'),
+  googleSitesHtml: z.string().describe('The full article content formatted as simple, clean HTML code, ready to be embedded in a Google Site.'),
 });
 export type AutomatedSiteManagementOutput = z.infer<typeof AutomatedSiteManagementOutputSchema>;
 
@@ -60,12 +61,13 @@ const prompt = ai.definePrompt({
   2.  Provide a list of new keyword suggestions to target.
   3.  From your suggested topics, choose the SINGLE most promising topic.
   4.  Write a complete, comprehensive, and SEO-optimized article for that chosen topic. The article must be at least 500 words long, well-structured with headings and paragraphs, and ready for publication.
+  5.  Finally, take the generated article (title and content) and format it as a single block of clean, simple HTML code. Use basic tags like <h1> for the title, <h2> for subheadings, and <p> for paragraphs. This HTML should be ready to be pasted directly into an "Embed Code" block on a Google Site.
 
   Website Goal: {{{websiteGoal}}}
   Current Keywords: {{{currentKeywords}}}
   Competitor URLs: {{{competitorUrls}}}
 
-  Your final output must be a single JSON object matching the specified format, containing the suggested topics, new keywords, and the complete generated article (title and content).`,
+  Your final output must be a single JSON object matching the specified format.`,
 });
 
 const automatedSiteManagementFlow = ai.defineFlow(
