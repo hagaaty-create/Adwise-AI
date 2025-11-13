@@ -11,7 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Wand2, FileText, Key, Network, FilePlus, Lightbulb } from 'lucide-react';
+import { Loader2, Wand2, FileText, Key, FilePlus, Lightbulb } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   websiteGoal: z.string().min(10, { message: 'Please describe your website goal in more detail.' }),
@@ -52,7 +54,7 @@ export default function SiteManagementPage() {
       <Card>
         <CardHeader>
           <CardTitle>Automated Site Management AI</CardTitle>
-          <CardDescription>Let our AI autonomously develop your website. It analyzes competitors, finds keywords, and generates content outlines to get you to the top of search results.</CardDescription>
+          <CardDescription>Let our AI autonomously develop your website. It analyzes competitors, finds keywords, and generates complete, ready-to-publish articles to get you to the top of search results.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -99,7 +101,7 @@ export default function SiteManagementPage() {
 
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                Generate SEO Plan
+                Generate SEO Plan & Article
               </Button>
             </form>
           </Form>
@@ -109,7 +111,7 @@ export default function SiteManagementPage() {
       {isLoading && (
         <div className="text-center p-8">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="mt-2 text-muted-foreground">AI is analyzing the web for you...</p>
+            <p className="mt-2 text-muted-foreground">AI is writing a full article for you... this may take a minute.</p>
         </div>
       )}
 
@@ -117,29 +119,38 @@ export default function SiteManagementPage() {
         <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Lightbulb className="text-primary" /> AI-Generated Suggestions</CardTitle>
+              <CardTitle className="flex items-center gap-2"><Lightbulb className="text-primary" /> AI-Generated SEO Plan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="font-semibold flex items-center gap-2 mb-2"><FilePlus /> New Page/Article Ideas</h3>
+                <h3 className="font-semibold flex items-center gap-2 mb-2"><FilePlus /> Suggested Article Topics</h3>
                 <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  {result.newPages.map((page, index) => <li key={index}>{page}</li>)}
+                  {result.suggestedTopics.map((topic, index) => <li key={index}>{topic}</li>)}
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold flex items-center gap-2 mb-2"><Key /> Keyword Suggestions</h3>
+                <h3 className="font-semibold flex items-center gap-2 mb-2"><Key /> New Keyword Suggestions</h3>
                 <div className="flex flex-wrap gap-2">
                   {result.keywordSuggestions.map((keyword, index) => (
-                    <span key={index} className="bg-primary/10 text-primary text-sm font-medium px-2.5 py-0.5 rounded-full">{keyword}</span>
+                     <Badge key={index} variant="outline">{keyword}</Badge>
                   ))}
                 </div>
               </div>
-              <div>
-                <h3 className="font-semibold flex items-center gap-2 mb-2"><FileText /> SEO Content Outline</h3>
-                <div className="text-sm text-muted-foreground bg-slate-100 p-4 rounded-md whitespace-pre-wrap font-mono">
-                  {result.contentOutline}
-                </div>
-              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><FileText /> Your Generated Article</CardTitle>
+              <CardDescription>This article is SEO-optimized and ready to be published on your site.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <h2 className="text-2xl font-bold tracking-tight">{result.generatedArticle.title}</h2>
+                <Separator />
+                <div 
+                    className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{ __html: result.generatedArticle.content.replace(/\n/g, '<br />') }}
+                />
             </CardContent>
           </Card>
         </div>

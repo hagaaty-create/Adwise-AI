@@ -3,9 +3,9 @@
 /**
  * @fileOverview This file defines the automated site management flow, which autonomously develops the website.
  *
- * It includes functionalities such as creating new pages and articles, analyzing competitor SEO, and generating top-ranking content.
+ * It includes functionalities such as analyzing competitor SEO, and generating top-ranking, complete articles.
  * - `automatedSiteManagement` - The main function to trigger the site management flow.
- * - `AutomatedSiteManagementInput` - The input type for the automatedSiteManagement functionूं
+ * - `AutomatedSiteManagementInput` - The input type for the automatedSiteManagement function.
  * - `AutomatedSiteManagementOutput` - The output type for the automatedSiteManagement function.
  */
 
@@ -30,13 +30,16 @@ const AutomatedSiteManagementInputSchema = z.object({
 export type AutomatedSiteManagementInput = z.infer<typeof AutomatedSiteManagementInputSchema>;
 
 const AutomatedSiteManagementOutputSchema = z.object({
-  newPages: z
+  suggestedTopics: z
     .array(z.string())
-    .describe('A list of suggested new pages or articles to create.'),
+    .describe('A list of at least 3 suggested topics for new articles based on the analysis.'),
   keywordSuggestions: z
     .array(z.string())
-    .describe('A list of keyword suggestions based on competitor analysis.'),
-  contentOutline: z.string().describe('An outline for content to improve SEO ranking.'),
+    .describe('A list of new keyword suggestions based on competitor analysis.'),
+  generatedArticle: z.object({
+    title: z.string().describe('The compelling, SEO-optimized title for the generated article.'),
+    content: z.string().describe('The full, well-structured, and SEO-optimized article content, with a minimum of 500 words.'),
+  }).describe('A complete, ready-to-publish article generated for the best suggested topic.'),
 });
 export type AutomatedSiteManagementOutput = z.infer<typeof AutomatedSiteManagementOutputSchema>;
 
@@ -50,15 +53,19 @@ const prompt = ai.definePrompt({
   name: 'automatedSiteManagementPrompt',
   input: {schema: AutomatedSiteManagementInputSchema},
   output: {schema: AutomatedSiteManagementOutputSchema},
-  prompt: `You are an AI website manager tasked with autonomously developing a website to improve its visibility and attract more users.
+  prompt: `You are an expert AI SEO strategist and content writer tasked with autonomously developing a website to improve its visibility and attract more users.
 
-  Based on the website's goals, current keywords, and competitor analysis, suggest new pages, keywords, and content outlines to improve SEO.
+  Based on the website's goals, current keywords, and competitor analysis, your task is to:
+  1.  Suggest at least 3 new, highly relevant article topics that can rank well.
+  2.  Provide a list of new keyword suggestions to target.
+  3.  From your suggested topics, choose the SINGLE most promising topic.
+  4.  Write a complete, comprehensive, and SEO-optimized article for that chosen topic. The article must be at least 500 words long, well-structured with headings and paragraphs, and ready for publication.
 
   Website Goal: {{{websiteGoal}}}
   Current Keywords: {{{currentKeywords}}}
   Competitor URLs: {{{competitorUrls}}}
 
-  Suggest at least 3 new pages or articles, keyword suggestions, and a content outline.`,
+  Your final output must be a single JSON object matching the specified format, containing the suggested topics, new keywords, and the complete generated article (title and content).`,
 });
 
 const automatedSiteManagementFlow = ai.defineFlow(
