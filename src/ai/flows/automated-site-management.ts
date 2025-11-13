@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -43,6 +44,9 @@ export type AutomatedSiteManagementOutput = z.infer<typeof AutomatedSiteManageme
 export async function automatedSiteManagement(
   input: AutomatedSiteManagementInput
 ): Promise<AutomatedSiteManagementOutput> {
+  if (!process.env.GEMINI_API_KEY) {
+      throw new Error("The GEMINI_API_KEY environment variable is not set. AI functionality is disabled.");
+  }
   return await automatedSiteManagementFlow(input);
 }
 

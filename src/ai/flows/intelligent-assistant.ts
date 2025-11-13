@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An intelligent assistant for website accessibility and user support.
@@ -32,6 +33,12 @@ const AssistUserOutputSchema = z.object({
 export type AssistUserOutput = z.infer<typeof AssistUserOutputSchema>;
 
 export async function assistUser(input: AssistUserInput): Promise<AssistUserOutput> {
+  if (!process.env.GEMINI_API_KEY) {
+    console.error('GEMINI_API_KEY is not set on the server.');
+    return {
+      response: 'Sorry, the AI Assistant is not configured correctly. The API key is missing. Please contact support.',
+    };
+  }
   // We are calling the flow directly to ensure any errors are propagated to the client.
   // This helps in debugging issues like a missing API key.
   return await intelligentAssistantFlow(input);

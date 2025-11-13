@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -44,6 +45,21 @@ const AutomatedAdCampaignOutputSchema = z.object({
 export type AutomatedAdCampaignOutput = z.infer<typeof AutomatedAdCampaignOutputSchema>;
 
 export async function createAutomatedAdCampaign(input: AutomatedAdCampaignInput): Promise<AutomatedAdCampaignOutput> {
+  if (!process.env.GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY is not set.');
+      // Fallback to mock data if API key is not set
+      return {
+        campaignSummaries: [
+          {
+            platform: 'Google',
+            adCopy: `Your API key is missing, but here is a sample ad. Hagaaty is your all-in-one solution for AI-powered advertising. With our platform, you can launch campaigns in minutes and reach your target audience in ${input.location} effectively.`,
+            predictedReach: input.budget * (1000 + Math.floor(Math.random() * 500)),
+            predictedConversions: input.budget * (50 + Math.floor(Math.random() * 50)),
+            estimatedCost: input.budget,
+          },
+        ],
+      };
+    }
   try {
     return await automatedAdCampaignFlow(input);
   } catch (error) {
