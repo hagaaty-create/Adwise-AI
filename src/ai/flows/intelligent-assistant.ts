@@ -88,21 +88,16 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
     }
 
-    // Convert the provided history and the new query into the format expected by the model.
+    // Convert the provided history to the format expected by the model.
     const messages = (history || []).map(msg => ({
         role: msg.role === 'user' ? 'user' : ('model' as const),
         parts: [{ text: msg.content }],
     }));
 
-    // Add the current user query to the end of the message history.
-    messages.push({
-        role: 'user',
-        parts: [{ text: query }],
-    });
-
     try {
-      // Pass the entire conversation history to the prompt.
+      // Pass the preceding history and the new query (as prompt) to the model.
       const result = await assistantPrompt({
+        prompt: query,
         history: messages,
       });
 
