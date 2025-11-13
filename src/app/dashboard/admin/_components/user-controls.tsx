@@ -14,13 +14,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Ban, CircleDollarSign } from 'lucide-react';
+import { Ban, CircleDollarSign, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { toggleUserStatus, addUserBalance } from '@/lib/actions';
 import type { User } from '@/lib/db';
 
 export function UserControls({ user }: { user: User }) {
   const [amountToAdd, setAmountToAdd] = useState<number>(0);
+  const isSuspended = user.status === 'suspended';
 
   const handleToggleStatus = async () => {
     try {
@@ -46,10 +47,10 @@ export function UserControls({ user }: { user: User }) {
   };
 
   return (
-    <>
+    <div className="flex gap-2">
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="outline" size="sm"><CircleDollarSign className="h-4 w-4" /></Button>
+          <Button variant="outline" size="sm" aria-label="Add Balance"><CircleDollarSign className="h-4 w-4" /></Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -71,11 +72,33 @@ export function UserControls({ user }: { user: User }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <form action={handleToggleStatus}>
-        <Button variant="destructive" size="sm" type="submit">
-          <Ban className="h-4 w-4" />
-        </Button>
-      </form>
-    </>
+      
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button variant={isSuspended ? 'secondary' : 'destructive'} size="sm" aria-label={isSuspended ? 'Un-suspend User' : 'Suspend User'}>
+            {isSuspended ? <ShieldCheck className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isSuspended
+                ? `سيؤدي هذا إلى إعادة تفعيل حساب المستخدم "${user.name}".`
+                : `سيؤدي هذا إلى إيقاف حساب المستخدم "${user.name}" ومنعه من تسجيل الدخول.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleToggleStatus}
+              className={isSuspended ? '' : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'}
+            >
+              نعم، قم بالتحديث
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

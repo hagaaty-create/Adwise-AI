@@ -82,7 +82,7 @@ export default async function AdminPage() {
                       {user.status === 'active' ? 'نشط' : 'موقوف'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="flex gap-2">
+                  <TableCell>
                      <UserControls user={user} />
                   </TableCell>
                 </TableRow>
@@ -112,8 +112,8 @@ export default async function AdminPage() {
                   <TableCell>{campaign.user_name}</TableCell>
                   <TableCell className="font-medium">{campaign.headline}</TableCell>
                   <TableCell>
-                    <Badge variant={campaign.status === 'active' ? 'default' : 'outline'} className={campaign.status === 'active' ? 'bg-green-600' : ''}>
-                      {campaign.status === 'active' ? 'نشطة' : 'متوقفة'}
+                    <Badge variant={campaign.status === 'active' ? 'default' : campaign.status === 'paused' ? 'outline' : 'destructive'} className={campaign.status === 'active' ? 'bg-green-600' : ''}>
+                      {campaign.status === 'active' ? 'نشطة' : (campaign.status === 'paused' ? 'متوقفة' : 'غير معروف')}
                     </Badge>
                   </TableCell>
                   <TableCell>
