@@ -25,6 +25,21 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+
+// Simple auth simulation hook
+const useAuth = () => {
+  // In a real app, this would be a proper authentication context
+  // For now, we'll hardcode the admin user for demonstration
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    // We assume the logged-in user is 'ahmed.ali@example.com' which we treat as admin
+    // This is a placeholder for a real auth check
+    setIsAdmin(true); // In this prototype, we'll assume the user is always the admin.
+  }, []);
+  return { isAdmin };
+}
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -41,6 +56,7 @@ const adminNavItems = [
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const { isAdmin } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -50,40 +66,50 @@ export function SidebarNav() {
             <SidebarTrigger />
         </SidebarHeader>
         <SidebarMenu>
-          {navItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href}
-                tooltip={item.label}
-              >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {navItems.map((item) => {
+             // Special case for Marketing AI to activate Create Ad link
+             const isActive = item.label === 'Create Ad' 
+             ? (pathname === item.href || pathname === '/dashboard/create-ad')
+             : pathname === item.href;
+
+            return (
+              <SidebarMenuItem key={item.href + item.label}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.label}
+                >
+                  <Link href={item.href}>
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
 
-        <hr className="my-4 border-sidebar-border" />
-        
-        <SidebarMenu>
-            {adminNavItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href}
-                tooltip={item.label}
-              >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        {isAdmin && (
+            <>
+                <hr className="my-4 border-sidebar-border" />
+                <SidebarMenu>
+                    {adminNavItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.href}
+                        tooltip={item.label}
+                    >
+                        <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+                </SidebarMenu>
+            </>
+        )}
 
       </SidebarContent>
       <SidebarFooter>

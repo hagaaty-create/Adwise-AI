@@ -351,7 +351,7 @@ export default function CreateAdPage() {
                 </div>
               </div>
               
-              <div className="flex justify-start">
+              <div className="flex justify-start pt-4">
                  {!hasCampaign ? (
                     <Button type="submit" disabled={isGenerating}>
                         {isGenerating ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Wand2 className="ml-2 h-4 w-4" />}
