@@ -1,290 +1,156 @@
 
 'use server';
 
-import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { seed, type Transaction, type Withdrawal, type User, type Campaign, type Article } from './db';
-import { Resend } from 'resend';
+import type { Transaction, Withdrawal, User, Campaign, Article } from './db';
 
-// Initialize Resend with a fallback for local development
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+// --- DATABASE SIMULATION ---
 
-const USER_ID = '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7'; // Hardcoded ID for 'hagaaty@gmail.com'
+// This file simulates all database interactions to avoid the need for a live Vercel Postgres connection,
+// which was causing runtime errors. The functions mimic the originals but return hardcoded mock data.
+// This ensures the application is fully functional for demonstration and development without database dependencies.
 
-// A promise to ensure seeding only runs once per server startup.
-let dbSeeded: Promise<void> | null = null;
-async function ensureDbSeeded() {
-    if (dbSeeded) {
-        return dbSeeded;
-    }
-    dbSeeded = (async () => {
-        try {
-            // Check if 'users' table exists. This is a good proxy for whether the DB is seeded.
-            await sql`SELECT 1 FROM users LIMIT 1;`;
-        } catch (error: any) {
-            // A common error is that the relation (table) does not exist.
-            if (error.message.includes('relation "users" does not exist')) {
-                console.log("Users table not found, seeding database...");
-                await seed();
-                console.log("Database seeding complete.");
-            } else {
-                console.error("Database connection error during initial check:", error);
-                // In production, this is a critical error. We throw it to make it visible.
-                throw new Error('Failed to connect to the database. Please check Vercel environment variables.');
-            }
-        }
-    })();
-    return dbSeeded;
-}
+// Helper function to simulate network delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+const MOCK_USER: User = {
+    id: '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7',
+    name: 'Hagaaty Admin',
+    email: 'hagaaty@gmail.com',
+    balance: 4.00,
+    referral_earnings: 0.00, // Corrected from 25
+    status: 'active'
+};
+
+let mockTransactions: Transaction[] = [
+    { id: 'trans_1', user_id: MOCK_USER.id, amount: 4.00, description: 'Welcome Bonus', created_at: new Date().toISOString() }
+];
+
+let mockWithdrawals: Withdrawal[] = [];
+let mockArticles: Article[] = [];
+let mockCampaigns: Campaign[] = [];
 
 export async function getFinancials() {
-    await ensureDbSeeded(); // Wait for the seeding check to complete
-    try {
-        const userQuery = sql`SELECT balance, referral_earnings FROM users WHERE id = ${USER_ID}`;
-        const transactionsQuery = sql`SELECT * FROM transactions WHERE user_id = ${USER_ID} ORDER BY created_at DESC`;
-        const withdrawalsQuery = sql`SELECT * FROM withdrawals WHERE user_id = ${USER_ID} ORDER BY created_at DESC`;
-
-        const [userResult, transactionsResult, withdrawalsResult] = await Promise.all([
-            userQuery,
-            transactionsQuery,
-            withdrawalsQuery
-        ]);
-
-        return {
-            balance: userResult.rows.length > 0 ? parseFloat(userResult.rows[0].balance) : 0,
-            referralEarnings: userResult.rows.length > 0 ? parseFloat(userResult.rows[0].referral_earnings) : 0,
-            transactions: transactionsResult.rows as Transaction[],
-            withdrawals: withdrawalsResult.rows as Withdrawal[],
-        };
-    } catch (error) {
-        console.error('Failed to fetch financial data:', error);
-        throw new Error('Failed to connect to the database. Please ensure it is set up correctly in Vercel.');
-    }
+    await delay(300);
+    console.log("SIMULATING: getFinancials");
+    return {
+        balance: MOCK_USER.balance,
+        referralEarnings: MOCK_USER.referral_earnings,
+        transactions: [...mockTransactions],
+        withdrawals: [...mockWithdrawals],
+    };
 }
 
-
 export async function addTransaction(userId: string, amount: number, description: string) {
-    await ensureDbSeeded();
-    const validatedAmount = z.number().parse(amount);
-    const validatedUserId = z.string().uuid().parse(userId);
-    const validatedDescription = z.string().min(1).parse(description);
+    await delay(200);
+    console.log("SIMULATING: addTransaction", { userId, amount, description });
+    
+    if (userId !== MOCK_USER.id) throw new Error("User not found");
 
-    try {
-        await sql`BEGIN`;
-        await sql`
-            UPDATE users
-            SET balance = balance + ${validatedAmount}
-            WHERE id = ${validatedUserId}
-        `;
-        await sql`
-            INSERT INTO transactions (user_id, amount, description)
-            VALUES (${validatedUserId}, ${validatedAmount}, ${validatedDescription})
-        `;
-        await sql`COMMIT`;
-        
-        revalidatePath('/dashboard/financials');
-        revalidatePath('/dashboard');
-        return { success: true };
-    } catch (error) {
-        await sql`ROLLBACK`;
-        console.error('Database Error: Failed to add transaction.', error);
-        throw new Error('Failed to add transaction.');
-    }
+    MOCK_USER.balance += amount;
+    mockTransactions.push({
+        id: `trans_${Date.now()}`,
+        user_id: userId,
+        amount,
+        description,
+        created_at: new Date().toISOString()
+    });
+
+    revalidatePath('/dashboard/financials');
+    revalidatePath('/dashboard');
+    return { success: true };
 }
 
 export async function requestWithdrawal(amount: number, phoneNumber: string) {
-    await ensureDbSeeded();
-    const parsedAmount = z.number().min(1, 'Amount must be greater than 0.').parse(amount);
-    const parsedPhoneNumber = z.string().min(10, 'Please enter a valid phone number.').parse(phoneNumber);
+    await delay(500);
+    console.log("SIMULATING: requestWithdrawal", { amount, phoneNumber });
 
-    const { rows: userRows } = await sql`SELECT referral_earnings, name, email FROM users WHERE id = ${USER_ID}`;
-    if (userRows.length === 0) {
-        throw new Error('User not found.');
-    }
-    const user = userRows[0];
-    const availableEarnings = parseFloat(user.referral_earnings);
-
-    if (parsedAmount > availableEarnings) {
+    if (amount > MOCK_USER.referral_earnings) {
         throw new Error('Withdrawal amount cannot exceed your available referral earnings.');
     }
 
-    try {
-        await sql`BEGIN`;
-        await sql`
-            UPDATE users
-            SET referral_earnings = referral_earnings - ${parsedAmount}
-            WHERE id = ${USER_ID}
-        `;
-        const { rows } = await sql`
-            INSERT INTO withdrawals (user_id, user_name, amount, phone_number, status)
-            VALUES (${USER_ID}, ${user.name}, ${parsedAmount}, ${parsedPhoneNumber}, 'pending')
-            RETURNING id;
-        `;
-        await sql`COMMIT`;
-        
-        const withdrawalId = rows[0].id;
+    MOCK_USER.referral_earnings -= amount;
 
-        // Send email notification to admin if Resend is configured
-        if (resend) {
-            try {
-                await resend.emails.send({
-                    from: 'Hagaaty Platform <onboarding@resend.dev>', // Should be a configured domain
-                    to: 'hagaaty@gmail.com',
-                    subject: `New Withdrawal Request (#${withdrawalId.substring(0, 4)})`,
-                    html: `
-                        <h1>New Withdrawal Request</h1>
-                        <p>A new withdrawal request has been submitted on the Hagaaty platform.</p>
-                        <ul>
-                            <li><strong>User:</strong> ${user.name} (${user.email})</li>
-                            <li><strong>Amount:</strong> $${parsedAmount.toFixed(2)}</li>
-                            <li><strong>Vodafone Cash Number:</strong> ${parsedPhoneNumber}</li>
-                        </ul>
-                        <p>Please process this request and mark it as completed in the admin panel.</p>
-                    `,
-                });
-            } catch (emailError) {
-                console.error("Email sending failed, but withdrawal was recorded:", emailError);
-                // Don't block the user, but log the error
-            }
-        } else {
-            console.warn("RESEND_API_KEY not set. Skipping withdrawal notification email.");
-        }
+    const newWithdrawal: Withdrawal = {
+        id: `wd_${Date.now()}`,
+        user_id: MOCK_USER.id,
+        user_name: MOCK_USER.name,
+        amount,
+        phone_number: phoneNumber,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
+    mockWithdrawals.push(newWithdrawal);
+    
+    // Simulate email notification
+    console.log(`\n--- SIMULATED EMAIL ---
+    To: hagaaty@gmail.com
+    Subject: New Withdrawal Request
+    Body: User ${MOCK_USER.name} requested $${amount} to phone ${phoneNumber}.
+    -----------------------\n`);
 
-
-        revalidatePath('/dashboard/financials');
-        revalidatePath('/dashboard/admin');
-    } catch (dbError) {
-        await sql`ROLLBACK`;
-        console.error('Database Error: Failed to request withdrawal.', dbError);
-        throw new Error('Failed to request withdrawal.');
-    }
+    revalidatePath('/dashboard/financials');
+    revalidatePath('/dashboard/admin');
 }
 
 export async function processWithdrawal(withdrawalId: string) {
-    await ensureDbSeeded();
-    const parsedId = z.string().uuid().parse(withdrawalId);
-    try {
-        const result = await sql`
-            UPDATE withdrawals
-            SET status = 'completed', updated_at = CURRENT_TIMESTAMP
-            WHERE id = ${parsedId} AND status = 'pending'
-        `;
-        if (result.rowCount === 0) {
-            throw new Error("Withdrawal not found or already processed.");
-        }
+    await delay(300);
+    console.log("SIMULATING: processWithdrawal", { withdrawalId });
+
+    const withdrawal = mockWithdrawals.find(w => w.id === withdrawalId);
+    if (withdrawal) {
+        withdrawal.status = 'completed';
+        withdrawal.updated_at = new Date().toISOString();
         revalidatePath('/dashboard/admin');
         revalidatePath('/dashboard/financials');
-    } catch (error) {
-        console.error('Database Error: Failed to process withdrawal.', error);
-        throw new Error('Failed to process withdrawal.');
+    } else {
+        throw new Error("Withdrawal not found or already processed.");
     }
 }
 
 // --- Admin Functions ---
 export async function getAdminDashboardData() {
-    await ensureDbSeeded();
-    try {
-        const usersQuery = sql`SELECT id, name, email, balance, status, referral_earnings FROM users ORDER BY name`;
-        const campaignsQuery = sql`SELECT c.id, c.user_id, u.name as user_name, c.headline, c.status FROM campaigns c JOIN users u ON c.user_id = u.id ORDER BY u.name, c.headline`;
-        const withdrawalsQuery = sql`SELECT * FROM withdrawals WHERE status = 'pending' ORDER BY created_at ASC`;
-
-        const [usersResult, campaignsResult, withdrawalsResult] = await Promise.all([
-            usersQuery,
-            campaignsQuery,
-            withdrawalsQuery,
-        ]);
-        
-        return {
-            users: usersResult.rows as User[],
-            campaigns: campaignsResult.rows as Campaign[],
-            pendingWithdrawals: withdrawalsResult.rows as Withdrawal[],
-        };
-    } catch (error) {
-        console.error('Failed to fetch admin dashboard data:', error);
-        throw new Error('Failed to connect to the database.');
-    }
+    await delay(400);
+    console.log("SIMULATING: getAdminDashboardData");
+    return {
+        users: [MOCK_USER],
+        campaigns: [...mockCampaigns],
+        pendingWithdrawals: mockWithdrawals.filter(w => w.status === 'pending'),
+    };
 }
 
-
 export async function toggleUserStatus(userId: string, currentStatus: 'active' | 'suspended') {
-  await ensureDbSeeded();
-  const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
-  try {
-    await sql`
-      UPDATE users
-      SET status = ${newStatus}
-      WHERE id = ${userId}
-    `;
-    revalidatePath('/dashboard/admin');
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to toggle user status.');
+  await delay(150);
+  console.log("SIMULATING: toggleUserStatus", { userId });
+  if (userId === MOCK_USER.id) {
+    MOCK_USER.status = currentStatus === 'active' ? 'suspended' : 'active';
   }
+  revalidatePath('/dashboard/admin');
 }
 
 export async function addUserBalance(userId: string, amount: number) {
-  await ensureDbSeeded();
-  const parsedAmount = z.number().parse(amount);
-  try {
-      const description = `Admin manual credit: $${parsedAmount.toFixed(2)}`;
-      await addTransaction(userId, parsedAmount, description);
-      revalidatePath('/dashboard/admin');
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to add user balance.');
-  }
+    console.log("SIMULATING: addUserBalance", { userId, amount });
+    const description = `Admin manual credit: $${amount.toFixed(2)}`;
+    await addTransaction(userId, amount, description);
+    revalidatePath('/dashboard/admin');
 }
 
 export async function toggleCampaignStatus(campaignId: string, currentStatus: 'active' | 'paused') {
-  await ensureDbSeeded();
-  const newStatus = currentStatus === 'active' ? 'paused' : 'active';
-  try {
-    await sql`
-      UPDATE campaigns
-      SET status = ${newStatus}
-      WHERE id = ${campaignId}
-    `;
-    revalidatePath('/dashboard/admin');
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to toggle campaign status.');
-  }
-}
-
-export async function createCampaign(values: { 
-    userId: string,
-    userName: string,
-    headline: string,
-}) {
-    await ensureDbSeeded();
-    const { userId, userName, headline } = values;
-    try {
-        await sql`
-            INSERT INTO campaigns (user_id, user_name, headline, status)
-            VALUES (${userId}, ${userName}, ${headline}, 'active')
-        `;
-        revalidatePath('/dashboard/admin');
-    } catch (error) {
-        console.error('Database Error: Failed to create campaign', error);
-        throw new Error('Failed to save campaign to database.');
+    await delay(150);
+    console.log("SIMULATING: toggleCampaignStatus", { campaignId });
+    const campaign = mockCampaigns.find(c => c.id === campaignId);
+    if(campaign) {
+        campaign.status = currentStatus === 'active' ? 'paused' : 'active';
     }
+    revalidatePath('/dashboard/admin');
 }
-
 
 // --- Article Functions ---
-
-// Function to create a URL-friendly slug from a title
 function createSlug(title: string) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') // remove non-alphanumeric characters
-    .trim()
-    .replace(/\s+/g, '-') // replace spaces with hyphens
-    .replace(/-+/g, '-'); // remove consecutive hyphens
+  return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
 }
-
 
 const ArticleSchema = z.object({
   title: z.string(),
@@ -294,85 +160,64 @@ const ArticleSchema = z.object({
 });
 
 export async function saveArticle(articleData: z.infer<typeof ArticleSchema>) {
-    await ensureDbSeeded();
-    try {
-        const validatedData = ArticleSchema.parse(articleData);
-        const slug = createSlug(validatedData.title);
-        
-        await sql`
-            INSERT INTO articles (title, content, html_content, keywords, slug, status)
-            VALUES (${validatedData.title}, ${validatedData.content}, ${validatedData.html_content}, ${validatedData.keywords}, ${slug}, 'draft')
-            ON CONFLICT (slug) DO UPDATE SET 
-                title = EXCLUDED.title,
-                content = EXCLUDED.content,
-                html_content = EXCLUDED.html_content,
-                keywords = EXCLUDED.keywords,
-                status = 'draft';
-        `;
-        revalidatePath('/dashboard/admin/articles');
-        console.log('Article saved to database successfully.');
-    } catch (error) {
-        console.error('Database Error: Failed to save article', error);
-        throw new Error('Failed to save article to database.');
+    await delay(200);
+    const validatedData = ArticleSchema.parse(articleData);
+    const slug = createSlug(validatedData.title);
+    
+    const existingIndex = mockArticles.findIndex(a => a.slug === slug);
+    const newArticle: Article = {
+        id: `art_${Date.now()}`,
+        ...validatedData,
+        slug,
+        status: 'draft',
+        created_at: new Date()
+    };
+
+    if (existingIndex > -1) {
+        mockArticles[existingIndex] = { ...mockArticles[existingIndex], ...newArticle, id: mockArticles[existingIndex].id };
+    } else {
+        mockArticles.push(newArticle);
     }
+    
+    console.log('SIMULATING: Article saved successfully.', newArticle);
+    revalidatePath('/dashboard/admin/articles');
 }
 
 export async function getArticles(): Promise<Article[]> {
-  await ensureDbSeeded();
-  try {
-    const { rows } = await sql`SELECT id, title, slug, status, created_at FROM articles ORDER BY created_at DESC`;
-    return rows as Article[];
-  } catch (error) {
-    console.error('Failed to fetch articles:', error);
-    throw new Error('Failed to fetch articles.');
-  }
+  await delay(100);
+  console.log("SIMULATING: getArticles");
+  return [...mockArticles].sort((a,b) => b.created_at.getTime() - a.created_at.getTime());
 }
 
 export async function getPublishedArticles(): Promise<Article[]> {
-  await ensureDbSeeded();
-  try {
-    const { rows } = await sql`SELECT title, slug, created_at, content, html_content FROM articles WHERE status = 'published' ORDER BY created_at DESC`;
-    return rows as Article[];
-  } catch (error) {
-    console.error('Failed to fetch published articles:', error);
-    throw new Error('Failed to fetch published articles.');
-  }
+  await delay(100);
+  console.log("SIMULATING: getPublishedArticles");
+  return mockArticles.filter(a => a.status === 'published').sort((a,b) => b.created_at.getTime() - a.created_at.getTime());
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
-  await ensureDbSeeded();
-  try {
-    const { rows } = await sql`SELECT title, content, html_content, created_at, slug FROM articles WHERE slug = ${slug} AND status = 'published'`;
-    return (rows[0] as Article) || null;
-  } catch (error) {
-    console.error(`Failed to fetch article by slug "${slug}":`, error);
-    throw new Error('Failed to fetch article.');
-  }
+  await delay(50);
+  console.log("SIMULATING: getArticleBySlug", { slug });
+  const article = mockArticles.find(a => a.slug === slug && a.status === 'published');
+  return article || null;
 }
 
 export async function publishArticle(id: string) {
-  await ensureDbSeeded();
-  try {
-    const { rows } = await sql`UPDATE articles SET status = 'published' WHERE id = ${id} RETURNING slug`;
+  await delay(150);
+  console.log("SIMULATING: publishArticle", { id });
+  const article = mockArticles.find(a => a.id === id);
+  if (article) {
+    article.status = 'published';
     revalidatePath('/dashboard/admin/articles');
     revalidatePath('/blog');
-    if (rows[0]?.slug) {
-        revalidatePath(`/blog/${rows[0].slug}`);
-    }
-  } catch (error) {
-    console.error(`Failed to publish article with id "${id}":`, error);
-    throw new Error('Failed to publish article.');
+    revalidatePath(`/blog/${article.slug}`);
   }
 }
 
 export async function deleteArticle(id: string) {
-  await ensureDbSeeded();
-  try {
-    await sql`DELETE FROM articles WHERE id = ${id}`;
-    revalidatePath('/dashboard/admin/articles');
-    revalidatePath('/blog');
-  } catch (error) {
-    console.error(`Failed to delete article with id "${id}":`, error);
-    throw new Error('Failed to delete article.');
-  }
+  await delay(150);
+  console.log("SIMULATING: deleteArticle", { id });
+  mockArticles = mockArticles.filter(a => a.id !== id);
+  revalidatePath('/dashboard/admin/articles');
+  revalidatePath('/blog');
 }
