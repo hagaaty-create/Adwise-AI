@@ -20,6 +20,7 @@ import { addTransaction } from '@/lib/actions'; // Use addTransaction instead of
 const formSchema = z.object({
   headline: z.string().min(10, { message: 'Headline must be at least 10 characters.' }),
   productDescription: z.string().min(20, { message: 'Product description must be at least 20 characters.' }),
+  websiteUrl: z.string().url({ message: 'Please enter a valid website URL.' }),
   keywords: z.string().min(3, { message: 'Please enter at least one keyword.' }),
   targetAudience: z.string().min(10, { message: 'Target audience must be at least 10 characters.' }),
   location: z.string().min(2, { message: 'Location is required.' }),
@@ -39,6 +40,7 @@ export default function CreateAdPage() {
     defaultValues: {
       headline: '',
       productDescription: '',
+      websiteUrl: '',
       keywords: '',
       targetAudience: 'Professionals aged 25-45 interested in marketing technology.',
       location: 'Egypt',
@@ -57,6 +59,7 @@ export default function CreateAdPage() {
       const result = await createAutomatedAdCampaign({
         adName: values.headline,
         productDescription: values.productDescription,
+        websiteUrl: values.websiteUrl,
         targetAudience: values.targetAudience,
         budget: values.budget,
         campaignDurationDays: values.campaignDurationDays,
@@ -69,6 +72,7 @@ export default function CreateAdPage() {
       const newCampaign = {
         id: `camp_${Date.now()}`,
         headline: values.headline,
+        websiteUrl: values.websiteUrl,
         status: 'review', // Starts in review
         adCopy: result.campaignSummaries[0].adCopy,
         predictedReach: result.campaignSummaries[0].predictedReach,
@@ -150,6 +154,22 @@ export default function CreateAdPage() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="websiteUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>رابط الموقع</FormLabel>
+                        <FormControl>
+                          <Input type="url" placeholder="https://example.com" {...field} dir="ltr" />
+                        </FormControl>
+                        <FormDescription>هذا هو الرابط الذي سيتم توجيه المستخدمين إليه.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="space-y-6">
                    <FormField
                     control={form.control}
                     name="keywords"
@@ -164,8 +184,6 @@ export default function CreateAdPage() {
                       </FormItem>
                     )}
                   />
-                </div>
-                <div className="space-y-6">
                    <FormField
                     control={form.control}
                     name="targetAudience"

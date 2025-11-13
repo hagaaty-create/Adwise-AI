@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Loader2, Megaphone, Clock, CheckCircle, BarChart2, DollarSign, Eye, MousePointerClick, Info } from 'lucide-react';
+import { Loader2, Megaphone, Clock, CheckCircle, BarChart2, DollarSign, Eye, MousePointerClick, Info, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 
 export type CampaignStatus = 'pending' | 'review' | 'active' | 'finished';
@@ -13,6 +13,7 @@ export type CampaignStatus = 'pending' | 'review' | 'active' | 'finished';
 export interface Campaign {
   id: string;
   headline: string;
+  websiteUrl: string;
   status: CampaignStatus;
   adCopy: string;
   predictedReach: number;
@@ -190,9 +191,18 @@ export default function CampaignsPage() {
                                             تفاصيل الإعلان المُنشأة بواسطة AI
                                         </CardTitle>
                                         </CardHeader>
-                                        <CardContent>
-                                            <h4 className="font-semibold mb-2">نص الإعلان</h4>
-                                            <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">{campaign.adCopy}</p>
+                                        <CardContent className="space-y-4">
+                                            <div>
+                                                <h4 className="font-semibold mb-2">نص الإعلان</h4>
+                                                <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">{campaign.adCopy}</p>
+                                            </div>
+                                             <div>
+                                                <h4 className="font-semibold mb-2">رابط الموقع المستهدف</h4>
+                                                <a href={campaign.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary bg-muted p-3 rounded-md flex items-center gap-2 hover:underline">
+                                                    <LinkIcon className="h-4 w-4"/>
+                                                    {campaign.websiteUrl}
+                                                </a>
+                                            </div>
                                         </CardContent>
                                     </Card>
                                </div>
