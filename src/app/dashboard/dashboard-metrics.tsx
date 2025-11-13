@@ -5,59 +5,48 @@ import { Wallet, Megaphone, Users, DollarSign } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Campaign } from './campaigns/page';
 import { useLanguage } from '@/context/language-context';
-import { getBalance } from '@/lib/actions'; // We will call this client side
+import { getFinancials } from '@/lib/actions'; 
 
 export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBalance: number }) {
   const { translations } = useLanguage();
   const [balance, setBalance] = useState(defaultBalance);
+  const [referralEarnings, setReferralEarnings] = useState(0);
   const [adSpend, setAdSpend] = useState(0);
   const [activeCampaignsCount, setActiveCampaignsCount] = useState(0);
 
-  useEffect(() => {
-    async function fetchBalance() {
+  const fetchAllMetrics = async () => {
       try {
-        const dbBalance = await getBalance();
-        setBalance(dbBalance);
+        const data = await getFinancials();
+        setBalance(data.balance);
+        setReferralEarnings(data.referralEarnings);
       } catch (e) {
         console.error("Failed to fetch balance, using default.", e);
         setBalance(defaultBalance);
       }
-    }
-    
-    const handleStorageChange = () => {
-        // When a transaction happens, refetch the balance
-        if (sessionStorage.getItem('newTransaction')) {
-            fetchBalance();
-            sessionStorage.removeItem('newTransaction');
-        }
-    };
-    
-    fetchBalance();
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-
-  }, [defaultBalance]);
-
-  useEffect(() => {
-    const updateMetrics = () => {
-      const savedCampaigns = JSON.parse(sessionStorage.getItem('userCampaigns') || '[]') as Campaign[];
       
+      const savedCampaigns = JSON.parse(sessionStorage.getItem('userCampaigns') || '[]') as Campaign[];
       const totalAdSpend = savedCampaigns.reduce((sum, campaign) => sum + campaign.adSpend, 0);
       setAdSpend(totalAdSpend);
 
       const activeCount = savedCampaigns.filter(c => c.status === 'active' || c.status === 'review').length;
       setActiveCampaignsCount(activeCount);
-    };
+  };
 
-    updateMetrics();
-
-    // Listen for changes from other tabs/windows
-    window.addEventListener('storage', updateMetrics);
-    return () => {
-      window.removeEventListener('storage', updateMetrics);
+  useEffect(() => {
+    fetchAllMetrics();
+    
+    // Listen for storage changes from other tabs to re-fetch all data
+    const handleStorageChange = () => {
+        if (sessionStorage.getItem('newTransaction')) {
+            fetchAllMetrics();
+            sessionStorage.removeItem('newTransaction');
+        }
     };
-  }, []);
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+
+  }, [defaultBalance]);
 
   const activeCampaignsText = activeCampaignsCount === 1 
     ? translations.dashboard.metrics.activeCampaigns.one 
@@ -94,7 +83,7 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">$0.00</div>
+          <div className="text-2xl font-bold">${referralEarnings.toFixed(2)}</div>
           <p className="text-xs text-muted-foreground">{translations.dashboard.metrics.referralEarnings.description}</p>
         </CardContent>
       </Card>

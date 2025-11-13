@@ -33,6 +33,17 @@ export type Transaction = {
   created_at: string;
 };
 
+export type Withdrawal = {
+  id: string;
+  user_id: string;
+  user_name: string;
+  amount: number;
+  phone_number: string;
+  status: 'pending' | 'completed' | 'rejected';
+  created_at: string;
+  updated_at: string;
+};
+
 
 export async function seed() {
   try {
@@ -44,16 +55,20 @@ export async function seed() {
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         balance NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-        status VARCHAR(50) NOT NULL DEFAULT 'active'
+        status VARCHAR(50) NOT NULL DEFAULT 'active',
+        referral_earnings NUMERIC(10, 2) NOT NULL DEFAULT 0.00
       );
     `;
     console.log(`Created "users" table`);
  
     // Insert initial admin user
     await sql`
-        INSERT INTO users (id, name, email, balance, status)
-        VALUES ('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 'Hagaaty Admin', 'hagaaty@gmail.com', 4.00, 'active')
-        ON CONFLICT (email) DO NOTHING;
+        INSERT INTO users (id, name, email, balance, status, referral_earnings)
+        VALUES ('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 'Hagaaty Admin', 'hagaaty@gmail.com', 4.00, 'active', 25.00)
+        ON CONFLICT (email) DO UPDATE SET 
+            name = EXCLUDED.name,
+            status = EXCLUDED.status,
+            referral_earnings = 25.00;
     `;
     console.log(`Seeded admin user`);
 
@@ -103,6 +118,21 @@ export async function seed() {
       );
     `;
     console.log(`Created "articles" table`);
+
+    // Create the withdrawals table
+    await sql`
+      CREATE TABLE IF NOT EXISTS withdrawals (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        user_name VARCHAR(255) NOT NULL,
+        amount NUMERIC(10, 2) NOT NULL,
+        phone_number VARCHAR(50) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    console.log(`Created "withdrawals" table`);
 
   } catch (error) {
     console.error('Error seeding database:', error);
