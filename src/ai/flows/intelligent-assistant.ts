@@ -88,15 +88,22 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
     }
 
-    const formattedHistory = (history || []).map(msg => ({
-      role: msg.role === 'user' ? 'user' : ('model' as const),
-      parts: [{ text: msg.content }],
+    // Convert the provided history and the new query into the format expected by the model.
+    const messages = (history || []).map(msg => ({
+        role: msg.role === 'user' ? 'user' : ('model' as const),
+        parts: [{ text: msg.content }],
     }));
 
+    // Add the current user query to the end of the message history.
+    messages.push({
+        role: 'user',
+        parts: [{ text: query }],
+    });
+
     try {
+      // Pass the entire conversation history to the prompt.
       const result = await assistantPrompt({
-        prompt: query,
-        history: formattedHistory,
+        history: messages,
       });
 
       const response = result.text;
