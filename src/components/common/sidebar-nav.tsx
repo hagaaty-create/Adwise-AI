@@ -59,7 +59,7 @@ export function SidebarNav() {
   ];
   
   const adminNavItems = [
-      { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
+      // { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel }, // Temporarily disabled
   ];
 
   return (
@@ -90,7 +90,7 @@ export function SidebarNav() {
           })}
         </SidebarMenu>
 
-        {isAdmin && (
+        {isAdmin && adminNavItems.length > 0 && (
             <>
                 <hr className="my-4 border-sidebar-border" />
                 <SidebarMenu>
