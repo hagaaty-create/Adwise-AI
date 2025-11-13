@@ -111,11 +111,16 @@ export default function FinancialsPage() {
   };
 
   const handleManualPaymentNotification = async (method: string) => {
+    const amount = parseFloat(topUpAmount);
+     if (!amount || amount <= 0) {
+        toast.error('الرجاء إدخال مبلغ الشحن أولاً في خانة Binance Pay قبل إرسال الإشعار.');
+        return;
+    }
     toast.info('إشعار هام', {
         description: `بعد التحويل، يرجى إرسال إيصال الدفع إلى البريد الإلكتروني للدعم. سيتم إرسال إشعار إلى المسؤول للمتابعة.`
     });
     // Send an email to admin to notify them of the manual payment attempt.
-    await sendManualTopUpNotification(method);
+    await sendManualTopUpNotification(method, amount);
 };
 
   const handleWithdrawalRequest = async () => {
