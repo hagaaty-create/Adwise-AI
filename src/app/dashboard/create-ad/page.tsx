@@ -171,7 +171,15 @@ export default function CreateAdPage() {
       sessionStorage.setItem('campaignData', JSON.stringify(values));
       sessionStorage.setItem('campaignStatus', 'review');
       sessionStorage.setItem('elapsedSeconds', '0');
-      updateGlobalMetrics({ adSpend: 0, impressions: 0, clicks: 0, status: 'review' });
+      // Set a transaction in session storage to be picked up by financials page
+      const transaction = {
+        id: `trx-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        description: `Ad Campaign: ${values.headline}`,
+        amount: -values.budget,
+        type: 'debit',
+      };
+      sessionStorage.setItem('newTransaction', JSON.stringify(transaction));
 
 
       toast.success('Google Ad campaign generated successfully!');
@@ -211,7 +219,7 @@ export default function CreateAdPage() {
   const renderStatusBadge = () => {
     switch (campaignStatus) {
       case 'review':
-        return <Badge variant="secondary" className="animate-pulse"><Clock className="ml-2 h-4 w-4" />في المراجعة (تقريباً 10 دقائق)</Badge>;
+        return <Badge variant="secondary" className="animate-pulse"><Clock className="ml-2 h-4 w-4" />في المراجعة (تقريباً 10 ثوانٍ)</Badge>;
       case 'active':
         return <Badge className="bg-green-600 hover:bg-green-700"><CheckCircle className="ml-2 h-4 w-4" />نشطة</Badge>;
       case 'finished':
@@ -343,14 +351,13 @@ export default function CreateAdPage() {
                 </div>
               </div>
               
-              <div className="flex justify-start items-center gap-4">
-                 {!hasCampaign && (
+              <div className="flex justify-start">
+                 {!hasCampaign ? (
                     <Button type="submit" disabled={isGenerating}>
                         {isGenerating ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Wand2 className="ml-2 h-4 w-4" />}
                         تفعيل الحملة بمكافأة 4$
                     </Button>
-                  )}
-                  {hasCampaign && (
+                  ) : (
                       <Button variant="destructive" onClick={handleCreateNewCampaign}>
                          <Wand2 className="ml-2 h-4 w-4" /> إنشاء حملة جديدة
                       </Button>

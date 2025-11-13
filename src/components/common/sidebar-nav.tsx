@@ -31,7 +31,6 @@ const navItems = [
   { href: '/dashboard/create-ad', icon: Megaphone, label: 'Create Ad' },
   { href: '/dashboard/review-ad', icon: CheckCircle, label: 'Review Ad' },
   { href: '/dashboard/site-management', icon: BrainCircuit, label: 'Site AI' },
-  { href: '/dashboard/create-ad', icon: Bot, label: 'Marketing AI' },
   { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
   { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
 ];
@@ -52,10 +51,10 @@ export function SidebarNav() {
         </SidebarHeader>
         <SidebarMenu>
           {navItems.map((item) => (
-            <SidebarMenuItem key={item.href + item.label}>
+            <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href && (item.label !== 'Marketing AI' && item.label !== 'Create Ad' || pathname.includes('create-ad'))}
+                isActive={pathname === item.href}
                 tooltip={item.label}
               >
                 <Link href={item.href}>
