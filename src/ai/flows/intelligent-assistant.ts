@@ -32,9 +32,15 @@ const AssistUserOutputSchema = z.object({
 export type AssistUserOutput = z.infer<typeof AssistUserOutputSchema>;
 
 export async function assistUser(input: AssistUserInput): Promise<AssistUserOutput> {
-  // We are temporarily removing the try/catch block to force a real API call.
-  // This will allow us to see if the connection is successful or if it fails with a specific error.
-  return await intelligentAssistantFlow(input);
+  try {
+    return await intelligentAssistantFlow(input);
+  } catch (error) {
+    console.error(`Intelligent assistant failed: ${error instanceof Error ? error.message : String(error)}`);
+    // Fallback to a helpful mock response on any error
+    return {
+      response: "I'm currently unable to connect to my AI brain. However, I can still help! You can find ad creation under 'Create Ad', and manage your funds in the 'Financials' section.",
+    };
+  }
 }
 
 // System instruction for the assistant
@@ -115,7 +121,6 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
     }
 
-    // Add a confirmation message to the response if the API call was successful
-    return { response: `[AI Connected] ${response}` };
+    return { response };
   }
 );
