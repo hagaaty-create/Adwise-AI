@@ -67,7 +67,7 @@ export function ChatAssistant() {
     if(isOpen && messages.length === 0) {
       setIsLoading(true);
       setTimeout(() => {
-        setMessages([{role: 'assistant', content: "Hello! I'm your AdWise AI assistant. How can I help you today? You can ask me about the website's features or how to navigate it."}]);
+        setMessages([{role: 'assistant', content: "Hello! I'm your Hagaaty AI assistant. How can I help you today? You can ask me about the website's features or how to navigate it."}]);
         setIsLoading(false);
       }, 500);
     }
@@ -86,7 +86,7 @@ export function ChatAssistant() {
       {isOpen && (
         <Card className="fixed bottom-4 right-4 z-50 w-full max-w-sm h-[60vh] flex flex-col shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
-            <h3 className="font-semibold flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> AdWise AI Assistant</h3>
+            <h3 className="font-semibold flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> Hagaaty AI Assistant</h3>
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-6 w-6">
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close chat</span>

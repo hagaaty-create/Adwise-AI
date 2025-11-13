@@ -55,7 +55,7 @@ export default function Home() {
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Zap className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tighter">AdWise AI</h1>
+          <h1 className="text-2xl font-bold tracking-tighter">Hagaaty</h1>
         </div>
         <nav className="flex items-center gap-4">
           <Button variant="ghost" asChild>
@@ -122,7 +122,7 @@ export default function Home() {
       </main>
 
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} AdWise AI. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Hagaaty. All rights reserved.</p>
       </footer>
     </div>
   );
