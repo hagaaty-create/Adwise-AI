@@ -30,20 +30,13 @@ export type SmartAdReviewOutput = z.infer<typeof SmartAdReviewOutputSchema>;
 export async function smartAdReview(input: SmartAdReviewInput): Promise<SmartAdReviewOutput> {
    if (!process.env.GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY is not set.');
-      return {
-        isApproved: true,
-        reason: "Mock Approval: This ad looks great! It's clear, concise, and highly relevant to the target audience. Approved for immediate launch. (Note: AI is not configured).",
-      };
+      throw new Error("The AI service is not configured. The GEMINI_API_KEY is missing.");
    }
    try {
     return await smartAdReviewFlow(input);
   } catch (error) {
     console.error(`Smart ad review failed: ${error instanceof Error ? error.message : String(error)}`);
-    // Fallback to a positive mock response on any error
-    return {
-      isApproved: true,
-      reason: "This ad looks great! It's clear, concise, and highly relevant to the target audience. Approved for immediate launch.",
-    };
+    throw new Error('The AI failed to review the ad. This might be due to a temporary issue with the AI service. Please try again later.');
   }
 }
 

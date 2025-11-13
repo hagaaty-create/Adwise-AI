@@ -35,13 +35,15 @@ export type AssistUserOutput = z.infer<typeof AssistUserOutputSchema>;
 export async function assistUser(input: AssistUserInput): Promise<AssistUserOutput> {
   if (!process.env.GEMINI_API_KEY) {
     console.error('GEMINI_API_KEY is not set on the server.');
-    return {
-      response: 'Sorry, the AI Assistant is not configured correctly. The API key is missing. Please contact support.',
-    };
+    throw new Error("The AI Assistant is not configured correctly. The API key is missing. Please contact support.");
   }
-  // We are calling the flow directly to ensure any errors are propagated to the client.
-  // This helps in debugging issues like a missing API key.
-  return await intelligentAssistantFlow(input);
+  
+  try {
+    return await intelligentAssistantFlow(input);
+  } catch (error) {
+     console.error(`Intelligent assistant failed: ${error instanceof Error ? error.message : String(error)}`);
+     throw new Error('An internal error occurred while communicating with the AI. Please try again later.');
+  }
 }
 
 // System instruction for the assistant

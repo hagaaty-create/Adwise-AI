@@ -45,9 +45,14 @@ export async function automatedSiteManagement(
   input: AutomatedSiteManagementInput
 ): Promise<AutomatedSiteManagementOutput> {
   if (!process.env.GEMINI_API_KEY) {
-      throw new Error("The GEMINI_API_KEY environment variable is not set. AI functionality is disabled.");
+      throw new Error("The AI service is not configured. The GEMINI_API_KEY is missing. AI functionality is disabled.");
   }
-  return await automatedSiteManagementFlow(input);
+  try {
+    return await automatedSiteManagementFlow(input);
+  } catch (error) {
+     console.error(`Automated site management failed: ${error instanceof Error ? error.message : String(error)}`);
+     throw new Error('The AI failed to generate the SEO plan. This might be due to a temporary issue with the AI service. Please try again later.');
+  }
 }
 
 const prompt = ai.definePrompt({

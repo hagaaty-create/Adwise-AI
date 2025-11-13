@@ -47,35 +47,13 @@ export type AutomatedAdCampaignOutput = z.infer<typeof AutomatedAdCampaignOutput
 export async function createAutomatedAdCampaign(input: AutomatedAdCampaignInput): Promise<AutomatedAdCampaignOutput> {
   if (!process.env.GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY is not set.');
-      // Fallback to mock data if API key is not set
-      return {
-        campaignSummaries: [
-          {
-            platform: 'Google',
-            adCopy: `Your API key is missing, but here is a sample ad. Hagaaty is your all-in-one solution for AI-powered advertising. With our platform, you can launch campaigns in minutes and reach your target audience in ${input.location} effectively.`,
-            predictedReach: input.budget * (1000 + Math.floor(Math.random() * 500)),
-            predictedConversions: input.budget * (50 + Math.floor(Math.random() * 50)),
-            estimatedCost: input.budget,
-          },
-        ],
-      };
-    }
+      throw new Error("The AI service is not configured. The GEMINI_API_KEY is missing. Please contact support.");
+  }
   try {
     return await automatedAdCampaignFlow(input);
   } catch (error) {
     console.error(`Automated ad campaign failed: ${error instanceof Error ? error.message : String(error)}`);
-    // Fallback to mock data on any error
-    return {
-      campaignSummaries: [
-        {
-          platform: 'Google',
-          adCopy: `Hagaaty is your all-in-one solution for AI-powered advertising. Get started today and see the difference. With our platform, you can launch campaigns in minutes and reach your target audience in ${input.location} effectively. Don't miss out on our special launch offer!`,
-          predictedReach: input.budget * (1000 + Math.floor(Math.random() * 500)),
-          predictedConversions: input.budget * (50 + Math.floor(Math.random() * 50)),
-          estimatedCost: input.budget,
-        },
-      ],
-    };
+    throw new Error('The AI failed to generate the ad campaign. This might be due to a temporary issue with the AI service. Please try again later.');
   }
 }
 
