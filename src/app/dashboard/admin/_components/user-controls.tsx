@@ -62,13 +62,14 @@ export function UserControls({ user }: { user: User }) {
               أدخل المبلغ الذي تريد إضافته إلى رصيد هذا المستخدم. سيتم تحديث رصيده على الفور في قاعدة البيانات.
             </DialogDescription>
           </DialogHeader>
-          <Input
-              type="number"
-              placeholder="مثال: 50"
-              value={amountToAdd || ''}
-              onChange={(e) => setAmountToAdd(parseFloat(e.target.value))}
-              className="mt-4"
-            />
+          <div className="pt-4">
+            <Input
+                type="number"
+                placeholder="مثال: 50"
+                value={amountToAdd || ''}
+                onChange={(e) => setAmountToAdd(parseFloat(e.target.value))}
+              />
+          </div>
           <DialogFooter>
             <DialogClose asChild>
                 <Button variant="outline" onClick={() => setAmountToAdd(0)}>إلغاء</Button>
