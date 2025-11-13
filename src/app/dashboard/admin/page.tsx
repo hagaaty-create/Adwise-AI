@@ -1,15 +1,47 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { getUsers, getCampaigns } from '@/lib/actions';
-import { Shield, Users, Megaphone, CheckCircle, PauseCircle, Ban, ShieldCheck } from 'lucide-react';
+import { Shield, Users, Megaphone, CheckCircle, PauseCircle, Ban, ShieldCheck, Loader2 } from 'lucide-react';
 import type { User, Campaign } from '@/lib/db';
 import { UserControls } from './_components/user-controls';
 import { CampaignControls } from './_components/campaign-controls';
 
-export default async function AdminPage() {
-  const users = await getUsers();
-  const campaigns = await getCampaigns();
+export default function AdminPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      try {
+        const [usersData, campaignsData] = await Promise.all([
+          getUsers(),
+          getCampaigns(),
+        ]);
+        setUsers(usersData as User[]);
+        setCampaigns(campaignsData as Campaign[]);
+      } catch (error) {
+        console.error("Failed to fetch admin data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2 text-muted-foreground">Loading Admin Panel...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-6">
