@@ -114,11 +114,17 @@ const intelligentAssistantFlow = ai.defineFlow(
       }
 
       return { response };
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error in intelligentAssistantFlow:', e);
+
+      const friendlyMessage = 
+        'Sorry, I seem to be having trouble connecting to my brain right now. ' +
+        'This is likely due to an issue with the Google AI API configuration. ' +
+        'Please check that the `GEMINI_API_KEY` is set correctly in your .env file and that the associated Google Cloud project has billing and the "Generative Language API" enabled.';
+
       throw new GenkitError({
         status: 'INTERNAL',
-        message: 'An error occurred while processing the request with the AI model.',
+        message: friendlyMessage,
       });
     }
   }
