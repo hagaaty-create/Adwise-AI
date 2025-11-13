@@ -52,7 +52,7 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 27 87% 67%; /* Vibrant Orange as accent */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -60,7 +60,7 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 172 90% 40%;
     --chart-1: 172 90% 40%; /* Primary chart color to new accent */
-    --chart-2: 210 100% 56%; /* Secondary to a nice blue */
+    --chart-2: 27 87% 67%; /* Secondary chart color to Orange */
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
