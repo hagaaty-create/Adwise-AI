@@ -60,7 +60,9 @@ export default function SiteManagementPage() {
       <Card>
         <CardHeader>
           <CardTitle>Autonomous Site Management AI</CardTitle>
-          <CardDescription>Delegate your content strategy to the AI. It will analyze the market, find valuable keywords, and write complete, ready-to-publish articles to make your site dominate search results. You can optionally provide a topic focus, or let the AI decide.</CardDescription>
+          <CardDescription>
+            This is your internal SEO engine. Delegate your content strategy for the Hagaaty website to our AI. It will analyze the market, find valuable keywords, and write complete articles to make this site dominate search results. You can optionally provide a topic focus, or let the AI decide.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
