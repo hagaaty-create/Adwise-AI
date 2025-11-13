@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
+import { GenkitError } from 'genkit';
 
 const AutomatedSiteManagementInputSchema = z.object({
   topicFocus: z
@@ -36,6 +37,31 @@ const AutomatedSiteManagementOutputSchema = z.object({
   googleSitesHtml: z.string().describe('The full article content formatted as simple, clean HTML code, ready to be embedded in a Google Site.'),
 });
 export type AutomatedSiteManagementOutput = z.infer<typeof AutomatedSiteManagementOutputSchema>;
+
+
+function getFallbackData(): AutomatedSiteManagementOutput {
+    const article = {
+        title: 'The Future of AI in Advertising (Fallback)',
+        content: `The world of advertising is undergoing a seismic shift, and artificial intelligence is the driving force. From hyper-personalized ad copy to predictive analytics, AI is no longer a futuristic concept but a present-day reality for marketers.\n\nOur platform, Hagaaty, leverages this power to provide an all-in-one solution for creating, managing, and optimizing ad campaigns. This article, generated as a fallback due to an API connection issue, demonstrates the quality of content our AI can produce. We explore how AI helps in identifying target audiences with greater precision, automating A/B testing, and dynamically allocating budgets for maximum return on investment.`
+    };
+    return {
+        suggestedTopics: [
+            'How AI is Revolutionizing E-commerce Ads',
+            'Top 5 AI Tools for Marketers in 2024',
+            'Maximizing ROI with AI-Powered PPC Campaigns'
+        ],
+        keywordSuggestions: [
+            'AI advertising platform',
+            'automated ad creation',
+            'marketing AI',
+            'PPC optimization',
+            'digital marketing trends'
+        ],
+        generatedArticle: article,
+        googleSitesHtml: `<h1>${article.title}</h1>\n<p>${article.content.replace(/\n\n/g, '</p>\n<p>')}</p>`
+    };
+}
+
 
 export async function automatedSiteManagement(
   input: AutomatedSiteManagementInput
@@ -67,10 +93,21 @@ const automatedSiteManagementFlow = ai.defineFlow(
     outputSchema: AutomatedSiteManagementOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    if (!output) {
-      throw new Error('Failed to generate site management plan. The AI model did not return any output.');
+    try {
+      // If the API key is missing, go directly to fallback.
+      if (!process.env.GEMINI_API_KEY) {
+        console.log('GEMINI_API_KEY is missing. Using fallback data for automatedSiteManagementFlow.');
+        return getFallbackData();
+      }
+
+      const {output} = await prompt(input);
+      if (!output) {
+        throw new Error('AI model did not return any output.');
+      }
+      return output;
+    } catch (error) {
+        console.error('Error in automatedSiteManagementFlow. Returning fallback data.', error);
+        return getFallbackData();
     }
-    return output;
   }
 );
