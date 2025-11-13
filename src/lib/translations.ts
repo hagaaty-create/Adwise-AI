@@ -8,7 +8,7 @@ export const translations = {
     sidebar: {
       dashboard: 'Dashboard',
       createAd: 'Create Ad',
-      reviewAd: 'Review Ad',
+      myCampaigns: 'My Campaigns',
       siteAI: 'Site AI',
       financials: 'Financials',
       agency: 'Agency',
@@ -51,7 +51,7 @@ export const translations = {
     sidebar: {
       dashboard: 'لوحة التحكم',
       createAd: 'إنشاء إعلان',
-      reviewAd: 'مراجعة إعلان',
+      myCampaigns: 'حملاتي',
       siteAI: 'AI الموقع',
       financials: 'الماليات',
       agency: 'الوكالة',

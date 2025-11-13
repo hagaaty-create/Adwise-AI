@@ -6,13 +6,13 @@ import {
   LayoutDashboard,
   Megaphone,
   Bot,
-  CheckCircle,
   BrainCircuit,
   Wallet,
   Briefcase,
   Search,
   UploadCloud,
   Terminal,
+  BarChart,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -40,7 +40,7 @@ import { toast } from 'sonner';
 const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/dashboard/create-ad', icon: Megaphone, label: 'Create Ad' },
-    { href: '/dashboard/review-ad', icon: CheckCircle, label: 'Review Ad' },
+    { href: '/dashboard/create-ad', icon: BarChart, label: 'My Campaigns' },
     { href: '/dashboard/site-management', icon: BrainCircuit, label: 'Site AI' },
     { href: '/dashboard/create-ad', icon: Bot, label: 'Marketing AI' },
     { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },

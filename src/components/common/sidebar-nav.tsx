@@ -22,6 +22,7 @@ import {
   Settings,
   LifeBuoy,
   Shield,
+  BarChart,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -52,7 +53,7 @@ export function SidebarNav() {
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: translations.sidebar.dashboard },
     { href: '/dashboard/create-ad', icon: Megaphone, label: translations.sidebar.createAd },
-    { href: '/dashboard/review-ad', icon: CheckCircle, label: translations.sidebar.reviewAd },
+    { href: '/dashboard/create-ad', icon: BarChart, label: translations.sidebar.myCampaigns, pathCheck: '/dashboard/create-ad'},
     { href: '/dashboard/site-management', icon: BrainCircuit, label: translations.sidebar.siteAI },
     { href: '/dashboard/financials', icon: Wallet, label: translations.sidebar.financials },
     { href: '/dashboard/subscription', icon: Briefcase, label: translations.sidebar.agency },
@@ -71,7 +72,7 @@ export function SidebarNav() {
         </SidebarHeader>
         <SidebarMenu>
           {navItems.map((item) => {
-             const isActive = pathname === item.href;
+             const isActive = pathname === (item.pathCheck || item.href);
 
             return (
               <SidebarMenuItem key={item.href + item.label}>
