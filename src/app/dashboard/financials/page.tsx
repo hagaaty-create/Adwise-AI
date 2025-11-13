@@ -13,6 +13,7 @@ import type { Transaction } from '@/lib/db';
 
 export default function FinancialsPage() {
   const referralLink = "https://hagaaty.com/ref/user123";
+  const binancePayId = "771625769"; // The ID you provided
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,11 +57,9 @@ export default function FinancialsPage() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(referralLink);
-    toast.success("تم النسخ إلى الحافظة!", {
-      description: "يمكنك الآن مشاركة رابط الإحالة الخاص بك.",
-    });
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("تم النسخ إلى الحافظة!");
   };
 
   const handleTopUp = async () => {
@@ -80,7 +79,7 @@ export default function FinancialsPage() {
         // For this demo, we will simulate this process.
         // Step 1: Simulate creating a payment link.
         await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API latency
-        const binancePayUrl = 'https://pay.binance.com/en/checkout/...' // This is a fake URL
+        const binancePayUrl = `https://pay.binance.com/en/checkout?id=${binancePayId}`; // Fake URL with your ID
 
         // Step 2: Simulate a successful payment by adding the transaction to our DB.
         // The user ID '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7' is the hardcoded ID for 'ahmed.ali@example.com'.
@@ -118,7 +117,15 @@ export default function FinancialsPage() {
         <Card>
           <CardHeader>
             <CardTitle>شحن الرصيد</CardTitle>
-            <CardDescription>أضف أموالاً إلى حسابك. استمتع بخصم 20٪ على كل عملية شحن!</CardDescription>
+            <CardDescription>
+              أضف أموالاً إلى حسابك عبر Binance Pay. أدخل المبلغ بالأسفل. معرف الدفع: 
+              <span 
+                className="font-mono bg-muted px-2 py-1 rounded-md mx-1 cursor-pointer"
+                onClick={() => copyToClipboard(binancePayId)}
+              >
+                {binancePayId} <Copy className="inline h-3 w-3 ml-1" />
+              </span>
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -132,7 +139,7 @@ export default function FinancialsPage() {
                 disabled={isProcessingPayment}
               />
             </div>
-            <p className="text-sm text-muted-foreground">طرق الدفع: Binance Pay (تجريبي)</p>
+            <p className="text-sm text-muted-foreground">استمتع بخصم 20٪ على كل عملية شحن!</p>
             <Button onClick={handleTopUp} disabled={isProcessingPayment}>
                 {isProcessingPayment ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
                 متابعة إلى Binance Pay
@@ -216,7 +223,7 @@ export default function FinancialsPage() {
           <CardContent className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Input value={referralLink} readOnly />
-                <Button variant="outline" size="icon" onClick={copyToClipboard}>
+                <Button variant="outline" size="icon" onClick={() => copyToClipboard(referralLink)}>
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>

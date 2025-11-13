@@ -28,6 +28,7 @@ export function DashboardMetrics({ initialBalance: defaultBalance }: { initialBa
         // When a transaction happens, refetch the balance
         if (sessionStorage.getItem('newTransaction')) {
             fetchBalance();
+            sessionStorage.removeItem('newTransaction');
         }
     };
     
