@@ -52,7 +52,7 @@ export async function seed() {
     // Insert initial admin user
     await sql`
         INSERT INTO users (id, name, email, balance, status)
-        VALUES ('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 'Ahmed Ali', 'ahmed.ali@example.com', 4.00, 'active')
+        VALUES ('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', 'Hagaaty Admin', 'hagaaty@gmail.com', 4.00, 'active')
         ON CONFLICT (email) DO NOTHING;
     `;
     console.log(`Seeded admin user`);

@@ -36,8 +36,8 @@ const useAuth = () => {
     // We check the sessionStorage for the admin email.
     if (typeof window !== 'undefined') {
       const loggedInUserEmail = sessionStorage.getItem('loggedInUserEmail');
-      // The admin user is hardcoded in the database seed.
-      if (loggedInUserEmail === 'ahmed.ali@example.com') {
+      // The admin user is now hagaaty@gmail.com as defined in the database seed.
+      if (loggedInUserEmail === 'hagaaty@gmail.com') {
         setIsAdmin(true);
       } else {
         setIsAdmin(false);
