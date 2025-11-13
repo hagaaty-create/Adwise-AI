@@ -88,6 +88,7 @@ const intelligentAssistantFlow = ai.defineFlow(
       const model = googleAI.model('gemini-pro', apiKey ? { apiKey } : undefined);
 
       // Correctly build the history for the model.
+      // The Genkit history format requires a 'role' of 'model' for the assistant's responses.
       const historyForModel = (history || []).map(msg => ({
         role: msg.role === 'user' ? ('user' as const) : ('model' as const),
         content: [{ text: msg.content }],
