@@ -4,12 +4,6 @@
  *
  * - assistUser - A function that handles user queries.
  * - AssistUserInput - The input type for the assistUser function.
- * 'use server';
-/**
- * @fileOverview An intelligent assistant for website accessibility and user support.
- *
- * - assistUser - A function that handles user queries.
- * - AssistUserInput - The input type for the assistUser function.
  * - AssistUserOutput - The return type for the assistUser function.
  */
 
@@ -84,6 +78,14 @@ const intelligentAssistantFlow = ai.defineFlow(
     outputSchema: AssistUserOutputSchema,
   },
   async ({ query, history }) => {
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY is not set.');
+      throw new GenkitError({
+        status: 'UNAUTHENTICATED',
+        message: 'The AI service is not configured. The GEMINI_API_KEY is missing. Please contact support.',
+      });
+    }
+    
     if (!query) {
       throw new GenkitError({
         status: 'INVALID_ARGUMENT',
@@ -91,36 +93,38 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      throw new GenkitError({
-        status: 'UNAUTHENTICATED',
-        message: 'The GEMINI_API_KEY environment variable is not set. Please add it to your Vercel project settings.',
+    try {
+      const model = googleAI.model('gemini-pro');
+
+      const historyForModel = (history || []).map(msg => ({
+        role: msg.role === 'user' ? ('user' as const) : ('model' as const),
+        content: [{ text: msg.content }],
+      }));
+
+      const result = await ai.generate({
+        model,
+        system: systemInstruction,
+        prompt: query,
+        history: historyForModel,
       });
-    }
 
-    const model = googleAI.model('gemini-pro');
+      const response = result.text;
+      
+      if (!response) {
+         throw new GenkitError({
+          status: 'UNAVAILABLE',
+          message: 'The AI model did not return a response. This may be due to an invalid API key, a billing issue, or a network problem.',
+        });
+      }
 
-    const historyForModel = (history || []).map(msg => ({
-      role: msg.role === 'user' ? ('user' as const) : ('model' as const),
-      content: [{ text: msg.content }],
-    }));
+      return { response };
 
-    const result = await ai.generate({
-      model,
-      system: systemInstruction,
-      prompt: query,
-      history: historyForModel,
-    });
-
-    const response = result.text;
-    
-    if (!response) {
+    } catch (error) {
+       console.error(`AI generation failed: ${error instanceof Error ? error.message : String(error)}`);
        throw new GenkitError({
-        status: 'UNAVAILABLE',
-        message: 'The AI model did not return a response. This may be due to an invalid API key, a billing issue, or a network problem.',
+        status: 'INTERNAL',
+        message: 'An internal error occurred while communicating with the AI. Please try again later.',
       });
     }
-
-    return { response };
   }
 );
