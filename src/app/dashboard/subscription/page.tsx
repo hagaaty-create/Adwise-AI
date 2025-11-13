@@ -10,7 +10,7 @@ import { BriefcaseIcon, Bot, FileText, Wand2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function AgencyPage() {
+export default function AgencySubscriptionPage() {
     const [contentAgentActive, setContentAgentActive] = useState(true);
     const [marketingAgentActive, setMarketingAgentActive] = useState(true);
     const [monthlyArticles, setMonthlyArticles] = useState([4]);

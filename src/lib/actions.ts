@@ -21,6 +21,7 @@ export async function getBalance() {
   } catch (error) {
     console.error('Failed to fetch balance:', error);
   }
+  // Return a default balance if DB fails, to prevent app crash.
   return 4.00;
 }
 
@@ -100,4 +101,26 @@ export async function toggleCampaignStatus(campaignId: string, currentStatus: 'a
     console.error('Database Error:', error);
     throw new Error('Failed to toggle campaign status.');
   }
+}
+
+const ArticleSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+  html_content: z.string(),
+  keywords: z.string(),
+});
+
+export async function saveArticle(articleData: z.infer<typeof ArticleSchema>) {
+    try {
+        const validatedData = ArticleSchema.parse(articleData);
+        await sql`
+            INSERT INTO articles (title, content, html_content, keywords)
+            VALUES (${validatedData.title}, ${validatedData.content}, ${validatedData.html_content}, ${validatedData.keywords})
+        `;
+        revalidatePath('/dashboard/admin/site-marketing');
+        console.log('Article saved to database successfully.');
+    } catch (error) {
+        console.error('Database Error: Failed to save article', error);
+        throw new Error('Failed to save article to database.');
+    }
 }

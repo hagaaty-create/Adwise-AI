@@ -12,6 +12,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 import { GenkitError } from 'genkit';
+import { saveArticle } from '@/lib/actions';
 
 const AutomatedSiteManagementInputSchema = z.object({
   topicFocus: z
@@ -42,42 +43,7 @@ export type AutomatedSiteManagementOutput = z.infer<typeof AutomatedSiteManageme
 export async function automatedSiteManagement(
   input: AutomatedSiteManagementInput
 ): Promise<AutomatedSiteManagementOutput> {
-  try {
-    return await automatedSiteManagementFlow(input);
-  } catch (error) {
-    console.error(`Automated site management failed: ${error instanceof Error ? error.message : String(error)}`);
-    // Fallback to mock data on any error
-    const topic = input.topicFocus || "AI in Digital Marketing";
-    const articleTitle = `The Ultimate Guide to ${topic}`;
-    const articleContent = `The world of digital marketing is constantly evolving, and at the heart of this transformation is Artificial Intelligence. ${topic} represents a significant leap forward, offering businesses unprecedented opportunities to connect with their audience.
-
-## Understanding the Core Concepts
-At its core, AI-driven marketing leverages data and machine learning to create highly personalized and effective campaigns. Instead of broad-stroke approaches, marketers can now tailor their messaging to individual users, leading to higher engagement and conversion rates.
-
-## Key Benefits
-- **Hyper-Personalization:** Deliver the right message to the right person at the right time.
-- **Predictive Analytics:** Forecast trends and customer behavior with remarkable accuracy.
-- **Enhanced Efficiency:** Automate repetitive tasks, freeing up your team to focus on strategy.
-
-By embracing these new technologies, companies can gain a significant competitive edge. Hagaaty is at the forefront of this revolution, providing an all-in-one platform to harness the power of AI for your advertising needs.`;
-
-    const googleSitesHtml = `<h1>${articleTitle}</h1>
-<h2>Understanding the Core Concepts</h2>
-<p>The world of digital marketing is constantly evolving, and at the heart of this transformation is Artificial Intelligence. ${topic} represents a significant leap forward, offering businesses unprecedented opportunities to connect with their audience. At its core, AI-driven marketing leverages data and machine learning to create highly personalized and effective campaigns. Instead of broad-stroke approaches, marketers can now tailor their messaging to individual users, leading to higher engagement and conversion rates.</p>
-<h2>Key Benefits</h2>
-<p><strong>Hyper-Personalization:</strong> Deliver the right message to the right person at the right time.<br><strong>Predictive Analytics:</strong> Forecast trends and customer behavior with remarkable accuracy.<br><strong>Enhanced Efficiency:</strong> Automate repetitive tasks, freeing up your team to focus on strategy.</p>
-<p>By embracing these new technologies, companies can gain a significant competitive edge. Hagaaty is at the forefront of this revolution, providing an all-in-one platform to harness the power of AI for your advertising needs.</p>`;
-
-    return {
-      suggestedTopics: ["The Rise of AI in Advertising", "Future of SEO with AI", "Personalization at Scale"],
-      keywordSuggestions: ["ai marketing", "automated advertising", "hagaaty platform", "seo automation"],
-      generatedArticle: {
-        title: articleTitle,
-        content: articleContent,
-      },
-      googleSitesHtml: googleSitesHtml,
-    };
-  }
+  return await automatedSiteManagementFlow(input);
 }
 
 const prompt = ai.definePrompt({
@@ -119,6 +85,20 @@ const automatedSiteManagementFlow = ai.defineFlow(
         message: 'The AI model did not return a response. This may be due to an invalid API key, a billing issue, or a network problem.',
       });
     }
+
+    // Save the generated article to the database
+    try {
+        await saveArticle({
+            title: output.generatedArticle.title,
+            content: output.generatedArticle.content,
+            html_content: output.googleSitesHtml,
+            keywords: output.keywordSuggestions.join(', '),
+        });
+    } catch (dbError) {
+        // Log the error but don't block the response to the user
+        console.error("Failed to save article to DB, but continuing to return result to user.", dbError);
+    }
+    
     return output;
   }
 );

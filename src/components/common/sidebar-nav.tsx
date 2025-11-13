@@ -54,12 +54,12 @@ export function SidebarNav() {
     { href: '/dashboard/create-ad', icon: Megaphone, label: translations.sidebar.createAd },
     { href: '/dashboard/create-ad', icon: BarChart, label: translations.sidebar.myCampaigns, pathCheck: '/dashboard/create-ad'},
     { href: '/dashboard/financials', icon: Wallet, label: translations.sidebar.financials },
-    { href: '/dashboard/subscription', icon: Briefcase, label: translations.sidebar.agency },
   ];
   
   const adminNavItems = [
       { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
       { href: '/dashboard/admin/site-marketing', icon: BrainCircuit, label: translations.sidebar.siteMarketing },
+      { href: '/dashboard/subscription', icon: Briefcase, label: translations.sidebar.agency },
   ];
 
   return (

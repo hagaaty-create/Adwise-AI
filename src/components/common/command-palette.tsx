@@ -43,12 +43,12 @@ const navItems = [
     { href: '/dashboard/create-ad', icon: Megaphone, label: 'Create Ad' },
     { href: '/dashboard/create-ad', icon: BarChart, label: 'My Campaigns' },
     { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
-    { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
 ];
 
 const adminNavItems = [
     { href: '/dashboard/admin', icon: Shield, label: 'Admin Panel' },
     { href: '/dashboard/admin/site-marketing', icon: BrainCircuit, label: 'Site Marketing' },
+    { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
 ];
 
 const gitCommands = `git add .
