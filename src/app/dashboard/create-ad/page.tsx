@@ -409,11 +409,11 @@ export default function CreateAdPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-1">نص الإعلان</h4>
-                    <p className="text-sm text-muted-foreground bg-slate-100 dark:bg-slate-800 p-3 rounded-md">{results.campaignSummaries[0].adCopy}</p>
+                    <h4 className="font-semibold mb-2">نص الإعلان</h4>
+                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">{results.campaignSummaries[0].adCopy}</p>
                   </div>
                    <div>
-                    <h4 className="font-semibold mb-1">الكلمات المفتاحية المستهدفة</h4>
+                    <h4 className="font-semibold mb-2">الكلمات المفتاحية المستهدفة</h4>
                     <div className="flex flex-wrap gap-2">
                         {campaignData.keywords.split(',').map((kw, i) => <Badge key={i} variant="outline">{kw.trim()}</Badge>)}
                     </div>

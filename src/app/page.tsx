@@ -84,7 +84,7 @@ export default function Home() {
         
         {heroImage && (
           <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative aspect-[16/9] md:aspect-[2/1] rounded-xl overflow-hidden shadow-2xl">
+            <div className="relative aspect-video md:aspect-[2.4/1] rounded-xl overflow-hidden shadow-2xl shadow-primary/10">
               <Image
                 src={heroImage.imageUrl}
                 alt={heroImage.description}
@@ -93,7 +93,7 @@ export default function Home() {
                 data-ai-hint={heroImage.imageHint}
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             </div>
           </section>
         )}
@@ -107,7 +107,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="bg-card/80 backdrop-blur-sm transform hover:scale-105 transition-transform duration-300">
+              <Card key={index} className="bg-card/80 backdrop-blur-sm border-primary/20 transform hover:scale-105 hover:border-primary/50 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center gap-4">
                   {feature.icon}
                   <CardTitle className="font-headline">{feature.title}</CardTitle>
