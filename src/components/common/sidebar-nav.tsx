@@ -21,6 +21,7 @@ import {
   Briefcase,
   Settings,
   LifeBuoy,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -33,6 +34,10 @@ const navItems = [
   { href: '/dashboard/marketing', icon: Bot, label: 'Marketing AI' },
   { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
   { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
+];
+
+const adminNavItems = [
+    { href: '/dashboard/admin', icon: Shield, label: 'Admin Panel' },
 ];
 
 export function SidebarNav() {
@@ -61,6 +66,26 @@ export function SidebarNav() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
+
+        <hr className="my-4 border-sidebar-border" />
+        
+        <SidebarMenu>
+            {adminNavItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href}
+                tooltip={item.label}
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

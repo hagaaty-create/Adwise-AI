@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,18 +8,41 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Wallet, Gift, Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
 
-const transactions = [
+const initialTransactions = [
   { id: 'trx-001', date: '2024-06-15', description: 'Welcome Bonus', amount: 4.00, type: 'credit' },
-  // { id: 'trx-002', date: '2024-06-20', description: 'Binance Top-up', amount: 50.00, type: 'credit' },
-  // { id: 'trx-003', date: '2024-06-21', description: 'Top-up Discount (20%)', amount: 10.00, type: 'credit' },
-  // { id: 'trx-004', date: '2024-06-22', description: 'Summer Sale Campaign', amount: -25.50, type: 'debit' },
-  // { id: 'trx-005', date: '2024-06-25', description: 'Referral Commission', amount: 2.00, type: 'credit' },
 ];
 
 export default function FinancialsPage() {
-  const referralLink = "https://adwise.ai/ref/user123";
+  const referralLink = "https://hagaaty.com/ref/user123";
+  const [balance, setBalance] = useState(4.00);
+  const [transactions, setTransactions] = useState(initialTransactions);
+
+  const updateBalance = () => {
+    const storedBalance = localStorage.getItem('user_balance');
+    if (storedBalance) {
+      const newBalance = parseFloat(storedBalance);
+      if (newBalance > balance) {
+        // A top-up happened
+        const diff = newBalance - balance;
+        const newTransaction = {
+          id: `trx-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          description: 'Admin Top-up',
+          amount: diff,
+          type: 'credit' as const
+        };
+        setTransactions(prev => [...prev, newTransaction]);
+      }
+      setBalance(newBalance);
+    }
+  };
+
+  useEffect(() => {
+    updateBalance();
+    window.addEventListener('storage', updateBalance);
+    return () => window.removeEventListener('storage', updateBalance);
+  }, [balance]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
@@ -80,7 +104,7 @@ export default function FinancialsPage() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$4.00</div>
+            <div className="text-2xl font-bold">${balance.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Includes $4.00 welcome bonus</p>
           </CardContent>
         </Card>
