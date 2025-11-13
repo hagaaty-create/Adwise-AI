@@ -24,29 +24,29 @@ export default function LoginPage() {
             <Zap className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold tracking-tighter">Hagaaty</h1>
           </div>
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>Log in to manage your ad campaigns</CardDescription>
+          <CardTitle>مرحباً بعودتك</CardTitle>
+          <CardDescription>سجل الدخول لإدارة حملاتك الإعلانية</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-2 text-right">
+              <Label htmlFor="email">البريد الإلكتروني</Label>
               <Input id="email" type="email" placeholder="name@example.com" required />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-2 text-right">
+              <Label htmlFor="password">كلمة المرور</Label>
               <Input id="password" type="password" required />
             </div>
             <Button type="submit" className="w-full">
-              Log In
+              تسجيل الدخول
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            ليس لديك حساب؟{' '}
             <Link href="/signup" className="font-medium text-primary hover:underline">
-              Sign Up
+              أنشئ حساباً
             </Link>
           </p>
         </CardFooter>

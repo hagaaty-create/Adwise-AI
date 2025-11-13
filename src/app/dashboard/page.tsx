@@ -3,14 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Wallet, Megaphone, Users, DollarSign, LineChart } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { useEffect, useState } from 'react';
+import type { CampaignStatus, CampaignMetrics } from './create-ad/page';
+
 
 export default function Dashboard() {
-  const [data, setData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState<CampaignMetrics>({ adSpend: 0, impressions: 0, clicks: 0, status: 'pending' });
+  const [hasActiveCampaign, setHasActiveCampaign] = useState(false);
 
   useEffect(() => {
     // We need to wrap this in useEffect to avoid hydration errors
     // because Math.random() produces different values on server and client.
-    setData([
+    setChartData([
       { name: 'Jan', total: Math.floor(Math.random() * 5000) + 1000 },
       { name: 'Feb', total: Math.floor(Math.random() * 5000) + 1000 },
       { name: 'Mar', total: Math.floor(Math.random() * 5000) + 1000 },
@@ -25,6 +29,28 @@ export default function Dashboard() {
       { name: 'Dec', total: Math.floor(Math.random() * 5000) + 1000 },
     ]);
   }, []);
+
+  const updateMetrics = () => {
+    const savedMetrics = JSON.parse(sessionStorage.getItem('campaignMetrics') || 'null');
+    const campaignStatus = sessionStorage.getItem('campaignStatus') as CampaignStatus | null;
+    
+    if (savedMetrics) {
+      setMetrics(savedMetrics);
+    }
+    setHasActiveCampaign(campaignStatus === 'active' || campaignStatus === 'review');
+  };
+
+  useEffect(() => {
+    updateMetrics();
+
+    window.addEventListener('storage', updateMetrics);
+    return () => {
+      window.removeEventListener('storage', updateMetrics);
+    };
+  }, []);
+
+  const activeCampaignsCount = hasActiveCampaign ? 1 : 0;
+  const activeCampaignsText = hasActiveCampaign ? '1 campaign is currently running' : 'No active campaigns';
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
@@ -45,8 +71,8 @@ export default function Dashboard() {
             <Megaphone className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">No active campaigns</p>
+            <div className="text-2xl font-bold">{activeCampaignsCount}</div>
+            <p className="text-xs text-muted-foreground">{activeCampaignsText}</p>
           </CardContent>
         </Card>
         <Card>
@@ -65,7 +91,7 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$0.00</div>
+            <div className="text-2xl font-bold">${metrics.adSpend.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Across all campaigns</p>
           </CardContent>
         </Card>
@@ -81,8 +107,8 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-           {data.length > 0 && <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={data}>
+           {chartData.length > 0 && <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={chartData}>
                 <XAxis
                   dataKey="name"
                   stroke="#888888"

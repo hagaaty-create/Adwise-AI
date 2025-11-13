@@ -17,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full dark">
-      <body className={`${inter.variable} font-body antialiased h-full`}>
+    <html lang="ar" dir="rtl" className="h-full dark">
+      <body className={`${inter.variable} antialiased h-full`}>
         {children}
         <ChatAssistant />
         <SonnerToaster richColors />
