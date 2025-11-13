@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wallet, Gift, Copy, Loader2, AlertTriangle, ExternalLink, Phone } from 'lucide-react';
+import { Wallet, Gift, Copy, Loader2, AlertTriangle, ExternalLink, Phone, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { getBalance, getTransactions, addTransaction } from '@/lib/actions';
 import type { Transaction } from '@/lib/db';
@@ -18,6 +18,7 @@ export default function FinancialsPage() {
   const usdtAddress = "TDGLKJE5GVpH923kqR677r9xfrzVsGJP";
   const bnbAddress = "0x6806f6aad1043c06153896d88807a1ebd90fec77";
   const vodafoneCashNumber = "01015016267";
+  const supportEmail = "hagaaty@gmail.com";
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,6 +107,16 @@ export default function FinancialsPage() {
         setIsProcessingPayment(false);
     }
   };
+  
+  const ManualPaymentNotice = () => (
+    <div className="flex items-start gap-2 text-primary mt-4 bg-primary/10 p-3 rounded-lg border border-primary/20">
+      <Mail className="h-4 w-4 flex-shrink-0 mt-1" />
+      <span className="text-xs text-muted-foreground">
+        بعد التحويل، يرجى إرسال إيصال الدفع إلى البريد الإلكتروني للدعم الفني لتأكيد الإيداع:
+        <a href={`mailto:${supportEmail}`} className="font-semibold text-primary hover:underline mx-1">{supportEmail}</a>
+      </span>
+    </div>
+  );
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -169,7 +180,7 @@ export default function FinancialsPage() {
                       تنبيه: أرسل فقط USDT على شبكة TRON (TRC20) إلى هذا العنوان. إرسال أي عملة أخرى أو على شبكة مختلفة قد يؤدي إلى فقدان أموالك.
                     </span>
                   </div>
-                   <p className="text-sm text-muted-foreground pt-2">بعد إتمام التحويل، يرجى التواصل مع الدعم الفني لتأكيد الإيداع وإضافة الرصيد إلى حسابك.</p>
+                   <ManualPaymentNotice />
                 </div>
               </TabsContent>
               <TabsContent value="bnb" className="pt-6">
@@ -187,7 +198,7 @@ export default function FinancialsPage() {
                       تنبيه: أرسل فقط BNB على شبكة Smart Chain (BEP20) إلى هذا العنوان. إرسال أي عملة أخرى أو على شبكة مختلفة قد يؤدي إلى فقدان أموالك.
                     </span>
                    </div>
-                   <p className="text-sm text-muted-foreground pt-2">بعد إتمام التحويل، يرجى التواصل مع الدعم الفني لتأكيد الإيداع وإضافة الرصيد إلى حسابك.</p>
+                   <ManualPaymentNotice />
                 </div>
               </TabsContent>
               <TabsContent value="vodafone-cash" className="pt-6">
@@ -199,12 +210,7 @@ export default function FinancialsPage() {
                         <Copy className="h-4 w-4" />
                       </Button>
                   </div>
-                  <div className="flex items-start gap-2 text-primary">
-                    <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-1" />
-                    <span className="text-xs text-muted-foreground">
-                      هام: بعد إتمام التحويل، يرجى التواصل مع الدعم الفني عبر الدردشة الحية أو تذاكر الدعم لتأكيد الإيداع وإضافة الرصيد إلى حسابك يدويًا.
-                    </span>
-                   </div>
+                  <ManualPaymentNotice />
                 </div>
               </TabsContent>
             </Tabs>
