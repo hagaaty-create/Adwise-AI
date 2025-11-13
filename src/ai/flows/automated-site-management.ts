@@ -39,21 +39,6 @@ const AutomatedSiteManagementOutputSchema = z.object({
 export type AutomatedSiteManagementOutput = z.infer<typeof AutomatedSiteManagementOutputSchema>;
 
 
-// Fallback data to be returned if the AI call fails
-const getFallbackData = (): AutomatedSiteManagementOutput => {
-  const article = {
-    title: "The Future of AI in Advertising",
-    content: "The world of digital advertising is on the cusp of a revolution, thanks to Artificial Intelligence. AI is no longer a futuristic concept but a tangible tool that is reshaping how brands connect with their audiences...\n\nAI algorithms can analyze vast amounts of data to identify trends, predict consumer behavior, and optimize ad spend in real-time. This leads to more effective campaigns, higher ROI, and a deeper understanding of the market landscape.\n\nAt Hagaaty, we are pioneering the use of autonomous AI agents to manage everything from SEO to paid campaigns, ensuring our clients stay ahead of the curve."
-  };
-  
-  return {
-    suggestedTopics: ["AI-Powered SEO Strategies for 2025", "How to Maximize ROI with Programmatic Advertising", "The Role of Machine Learning in Customer Segmentation"],
-    keywordSuggestions: ["AI advertising platform", "automated SEO", "programmatic ad buying", "marketing AI tools"],
-    generatedArticle: article,
-    googleSitesHtml: `<h1>${article.title}</h1><p>${article.content.replace(/\n\n/g, '</p><p>')}</p>`,
-  };
-};
-
 export async function automatedSiteManagement(
   input: AutomatedSiteManagementInput
 ): Promise<AutomatedSiteManagementOutput> {
@@ -84,21 +69,21 @@ const automatedSiteManagementFlow = ai.defineFlow(
     outputSchema: AutomatedSiteManagementOutputSchema,
   },
   async input => {
-    try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        console.log("No GEMINI_API_KEY found. Using fallback data for site management.");
-        return getFallbackData();
-      }
-      const {output} = await prompt(input);
-      if (!output) {
-        console.warn('AI model did not return any output for site management. Using fallback data.');
-        return getFallbackData();
-      }
-      return output;
-    } catch (error) {
-        console.error('Error in automatedSiteManagementFlow, using fallback. This is likely an API key or billing issue.', error);
-        return getFallbackData();
+    if (!process.env.GEMINI_API_KEY) {
+      throw new GenkitError({
+        status: 'UNAUTHENTICATED',
+        message:
+          'GEMINI_API_KEY is not set. Please set it in your .env file.',
+      });
     }
+
+    const {output} = await prompt(input);
+    if (!output) {
+      throw new GenkitError({
+        status: 'UNAVAILABLE',
+        message: 'The AI model did not return a response. This could be due to a billing issue or an invalid API key.',
+      });
+    }
+    return output;
   }
 );
