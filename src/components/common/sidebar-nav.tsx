@@ -21,6 +21,7 @@ import {
   LifeBuoy,
   Shield,
   BarChart,
+  Newspaper,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -64,6 +65,7 @@ export function SidebarNav() {
   const adminNavItems = [
       { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
       { href: '/dashboard/admin/site-marketing', icon: BrainCircuit, label: translations.sidebar.siteMarketing },
+      { href: '/dashboard/admin/articles', icon: Newspaper, label: 'Manage Articles' },
       { href: '/dashboard/subscription', icon: Briefcase, label: translations.sidebar.agency },
   ];
 
@@ -103,7 +105,7 @@ export function SidebarNav() {
                     <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                         asChild
-                        isActive={pathname === item.href}
+                        isActive={pathname.startsWith(item.href)}
                         tooltip={item.label}
                     >
                         <Link href={item.href}>

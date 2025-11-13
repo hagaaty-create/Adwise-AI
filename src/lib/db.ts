@@ -23,6 +23,8 @@ export type Article = {
     content: string;
     html_content: string;
     keywords: string;
+    slug: string;
+    status: 'draft' | 'published';
     created_at: Date;
 };
 
@@ -116,6 +118,8 @@ export async function seed() {
         content TEXT NOT NULL,
         html_content TEXT NOT NULL,
         keywords VARCHAR(255),
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'draft',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;

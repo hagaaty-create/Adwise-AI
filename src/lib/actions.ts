@@ -3,7 +3,7 @@
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { seed, type Transaction, type Withdrawal, type User, type Campaign } from './db';
+import { seed, type Transaction, type Withdrawal, type User, type Campaign, type Article } from './db';
 import { Resend } from 'resend';
 
 // This should be in environment variables, but for demo purposes it's here.
@@ -15,7 +15,7 @@ async function ensureDbSeeded() {
     try {
         await sql`SELECT 1 FROM users LIMIT 1;`;
     } catch (error: any) {
-        if (error.message.includes('relation "users" does not exist') || error.message.includes('relation "withdrawals" does not exist') || error.message.includes('relation "campaigns" does not exist')) {
+        if (error.message.includes('relation "users" does not exist') || error.message.includes('relation "withdrawals" does not exist') || error.message.includes('relation "campaigns" does not exist') || error.message.includes('relation "articles" does not exist')) {
             console.log("Tables not found, seeding database...");
             await seed();
         } else {
@@ -195,28 +195,6 @@ export async function getAdminDashboardData() {
 }
 
 
-export async function getUsers() {
-  await ensureDbSeeded();
-  try {
-    const { rows } = await sql`SELECT id, name, email, balance, status, referral_earnings FROM users`;
-    return rows;
-  } catch (error) {
-    console.error('Failed to fetch users:', error);
-    return [];
-  }
-}
-
-export async function getCampaigns() {
-  await ensureDbSeeded();
-  try {
-    const { rows } = await sql`SELECT * FROM campaigns`;
-    return rows;
-  } catch (error) {
-    console.error('Failed to fetch campaigns:', error);
-    return [];
-  }
-}
-
 export async function toggleUserStatus(userId: string, currentStatus: 'active' | 'suspended') {
   await ensureDbSeeded();
   const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
@@ -267,6 +245,20 @@ export async function toggleCampaignStatus(campaignId: string, currentStatus: 'a
   }
 }
 
+
+// --- Article Functions ---
+
+// Function to create a URL-friendly slug from a title
+function createSlug(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // remove non-alphanumeric characters
+    .trim()
+    .replace(/\s+/g, '-') // replace spaces with hyphens
+    .replace(/-+/g, '-'); // remove consecutive hyphens
+}
+
+
 const ArticleSchema = z.object({
   title: z.string(),
   content: z.string(),
@@ -278,14 +270,73 @@ export async function saveArticle(articleData: z.infer<typeof ArticleSchema>) {
     await ensureDbSeeded();
     try {
         const validatedData = ArticleSchema.parse(articleData);
+        const slug = createSlug(validatedData.title);
+        
         await sql`
-            INSERT INTO articles (title, content, html_content, keywords)
-            VALUES (${validatedData.title}, ${validatedData.content}, ${validatedData.html_content}, ${validatedData.keywords})
+            INSERT INTO articles (title, content, html_content, keywords, slug, status)
+            VALUES (${validatedData.title}, ${validatedData.content}, ${validatedData.html_content}, ${validatedData.keywords}, ${slug}, 'draft')
+            ON CONFLICT (slug) DO NOTHING;
         `;
-        revalidatePath('/dashboard/admin/site-marketing');
+        revalidatePath('/dashboard/admin/articles');
         console.log('Article saved to database successfully.');
     } catch (error) {
         console.error('Database Error: Failed to save article', error);
         throw new Error('Failed to save article to database.');
     }
+}
+
+export async function getArticles() {
+  await ensureDbSeeded();
+  try {
+    const { rows } = await sql<Article>`SELECT id, title, slug, status, created_at FROM articles ORDER BY created_at DESC`;
+    return rows;
+  } catch (error) {
+    console.error('Failed to fetch articles:', error);
+    throw new Error('Failed to fetch articles.');
+  }
+}
+
+export async function getPublishedArticles() {
+  await ensureDbSeeded();
+  try {
+    const { rows } = await sql<Article>`SELECT title, slug, created_at, content FROM articles WHERE status = 'published' ORDER BY created_at DESC`;
+    return rows;
+  } catch (error) {
+    console.error('Failed to fetch published articles:', error);
+    throw new Error('Failed to fetch published articles.');
+  }
+}
+
+export async function getArticleBySlug(slug: string) {
+  await ensureDbSeeded();
+  try {
+    const { rows } = await sql<Article>`SELECT title, content, html_content, created_at FROM articles WHERE slug = ${slug} AND status = 'published'`;
+    return rows[0] || null;
+  } catch (error) {
+    console.error(`Failed to fetch article by slug "${slug}":`, error);
+    throw new Error('Failed to fetch article.');
+  }
+}
+
+export async function publishArticle(id: string) {
+  await ensureDbSeeded();
+  try {
+    await sql`UPDATE articles SET status = 'published' WHERE id = ${id}`;
+    revalidatePath('/dashboard/admin/articles');
+    revalidatePath('/blog');
+  } catch (error) {
+    console.error(`Failed to publish article with id "${id}":`, error);
+    throw new Error('Failed to publish article.');
+  }
+}
+
+export async function deleteArticle(id: string) {
+  await ensureDbSeeded();
+  try {
+    await sql`DELETE FROM articles WHERE id = ${id}`;
+    revalidatePath('/dashboard/admin/articles');
+  } catch (error) {
+    console.error(`Failed to delete article with id "${id}":`, error);
+    throw new Error('Failed to delete article.');
+  }
 }

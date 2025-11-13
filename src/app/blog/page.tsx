@@ -1,0 +1,79 @@
+import { getPublishedArticles } from '@/lib/actions';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Calendar, ArrowRight } from 'lucide-react';
+import { Zap } from 'lucide-react';
+
+export default async function BlogPage() {
+  const articles = await getPublishedArticles();
+
+  return (
+    <div className="bg-background text-foreground">
+       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center border-b">
+        <div className="flex items-center gap-2">
+          <Zap className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl font-bold tracking-tighter">Hagaaty</h1>
+        </div>
+        <nav className="flex items-center gap-4">
+          <Button variant="outline" asChild>
+            <Link href="/">Home</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/login">Login</Link>
+          </Button>
+        </nav>
+      </header>
+
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter">Hagaaty Blog</h1>
+          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            Insights, strategies, and updates on AI-powered advertising and digital marketing.
+          </p>
+        </div>
+
+        {articles.length > 0 ? (
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {articles.map(article => (
+              <Card key={article.slug} className="flex flex-col overflow-hidden group">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold group-hover:text-primary transition-colors">
+                    <Link href={`/blog/${article.slug}`}>
+                      {article.title}
+                    </Link>
+                  </CardTitle>
+                  <CardDescription className="flex items-center gap-2 text-sm pt-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>{new Date(article.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <p className="text-muted-foreground line-clamp-3">
+                    {article.content.substring(0, 150)}...
+                  </p>
+                </CardContent>
+                <div className="p-6 pt-0">
+                  <Button asChild variant="link" className="p-0 h-auto">
+                    <Link href={`/blog/${article.slug}`}>
+                      Read More <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 border rounded-lg">
+            <h2 className="text-2xl font-semibold">No Articles Yet</h2>
+            <p className="mt-2 text-muted-foreground">Check back soon for new content!</p>
+          </div>
+        )}
+      </main>
+      
+       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground border-t mt-12">
+        <p>&copy; {new Date().getFullYear()} Hagaaty. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+}
