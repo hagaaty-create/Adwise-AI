@@ -41,7 +41,7 @@ import { toast } from 'sonner';
 const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/dashboard/create-ad', icon: Megaphone, label: 'Create Ad' },
-    { href: '/dashboard/create-ad', icon: BarChart, label: 'My Campaigns' },
+    { href: '/dashboard/campaigns', icon: BarChart, label: 'My Campaigns' },
     { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
 ];
 

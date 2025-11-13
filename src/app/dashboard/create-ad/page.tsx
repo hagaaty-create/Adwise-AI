@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -95,7 +96,7 @@ export default function CreateAdPage() {
       window.dispatchEvent(new Event('storage')); // Notify other tabs/components
 
       toast.success('Google Ad campaign generated successfully!', {
-        description: 'Your campaign is now under review.'
+        description: 'Your campaign is now under review and can be tracked on the My Campaigns page.'
       });
       
       router.push('/dashboard/campaigns');

@@ -95,11 +95,7 @@ export default function CampaignsPage() {
 
         if (hasChanged) {
           sessionStorage.setItem('userCampaigns', JSON.stringify(updatedCampaigns));
-          // Update global metrics for dashboard
-          const totalSpend = updatedCampaigns.reduce((sum, c) => sum + c.adSpend, 0);
-          const hasActive = updatedCampaigns.some(c => c.status === 'active');
-          const globalMetrics = { adSpend: totalSpend, impressions: 0, clicks: 0, status: hasActive ? 'active' : 'finished' };
-          sessionStorage.setItem('campaignMetrics', JSON.stringify(globalMetrics));
+          // Notify other components like the dashboard metrics
           window.dispatchEvent(new Event('storage'));
           return updatedCampaigns;
         }
