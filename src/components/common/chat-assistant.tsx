@@ -5,14 +5,30 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, X, Loader2, Send } from 'lucide-react';
+import { Bot, X, Loader2, Send, LinkIcon } from 'lucide-react';
 import { assistUser } from '@/ai/flows/intelligent-assistant';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 type Message = {
   role: 'user' | 'assistant';
   content: string;
+};
+
+const parseAssistantResponse = (text: string) => {
+    const regex = /\[Link: (.*?)\]/;
+    const match = text.match(regex);
+    if (match) {
+        const mainText = text.replace(regex, '').trim();
+        const linkUrl = match[1];
+        // Extract link text from "Would you like me to take you to the [Page Name] page?"
+        const linkTextMatch = mainText.match(/the (.*?) page\?/);
+        const linkText = linkTextMatch ? linkTextMatch[1] : 'Go to Page';
+        return { mainText, link: { url: linkUrl, text: linkText } };
+    }
+    return { mainText: text, link: null };
 };
 
 export function ChatAssistant() {
@@ -21,6 +37,8 @@ export function ChatAssistant() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -40,7 +58,6 @@ export function ChatAssistant() {
     setIsLoading(true);
 
     try {
-      // Pass the previous messages as history
       const history = messages; 
 
       const result = await assistUser({
@@ -73,6 +90,15 @@ export function ChatAssistant() {
     }
   }, [isOpen, messages.length]);
 
+  const handleLinkClick = (url: string) => {
+    if (url === pathname) {
+        setMessages((prev) => [...prev, {role: 'assistant', content: "You are already on that page!"}]);
+    } else {
+        router.push(url);
+        setIsOpen(false);
+    }
+  };
+
   return (
     <>
       {!isOpen && (
@@ -95,26 +121,41 @@ export function ChatAssistant() {
           <CardContent className="flex-grow p-0">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
               <div className="p-4 space-y-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      'flex items-end gap-2',
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'max-w-[80%] rounded-lg px-3 py-2 text-sm',
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      )}
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                ))}
+                {messages.map((message, index) => {
+                   const { mainText, link } = message.role === 'assistant' ? parseAssistantResponse(message.content) : { mainText: message.content, link: null };
+
+                   return (
+                      <div
+                        key={index}
+                        className={cn(
+                          'flex items-end gap-2',
+                          message.role === 'user' ? 'justify-end' : 'justify-start'
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            'max-w-[85%] rounded-lg px-3 py-2 text-sm',
+                            message.role === 'user'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          )}
+                        >
+                          <p className="whitespace-pre-wrap">{mainText}</p>
+                           {link && (
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                className="mt-2 w-full"
+                                onClick={() => handleLinkClick(link.url)}
+                            >
+                                <LinkIcon className="mr-2 h-4 w-4" />
+                                {link.text}
+                            </Button>
+                           )}
+                        </div>
+                      </div>
+                    )
+                })}
                 {isLoading && (
                   <div className="flex justify-start gap-2">
                      <div className="bg-muted rounded-lg px-3 py-2 text-sm">
