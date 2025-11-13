@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wallet, Gift, Copy, Loader2, AlertTriangle, ExternalLink, Phone, Mail, PiggyBank, CircleHelp, CheckCircle, Clock } from 'lucide-react';
+import { Wallet, Gift, Copy, Loader2, AlertTriangle, ExternalLink, Phone, Mail, PiggyBank, CheckCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { getFinancials, addTransaction, requestWithdrawal, sendManualTopUpNotification } from '@/lib/actions';
 import type { Transaction, Withdrawal } from '@/lib/db';
@@ -237,26 +237,32 @@ export default function FinancialsPage() {
                     <h3 className="font-semibold pt-4">سجل طلبات السحب</h3>
                     <div className="border rounded-lg max-h-48 overflow-y-auto">
                         <Table>
+                            <TableHeader>
+                               <TableRow>
+                                <TableHead>المبلغ والحالة</TableHead>
+                                <TableHead className="text-left">التاريخ</TableHead>
+                               </TableRow>
+                            </TableHeader>
                             <TableBody>
                                 {isLoading ? (
-                                    <TableRow><TableCell className="text-center h-24"><Loader2 className="mx-auto h-5 w-5 animate-spin"/></TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={2} className="text-center h-24"><Loader2 className="mx-auto h-5 w-5 animate-spin"/></TableCell></TableRow>
                                 ) : withdrawals.length > 0 ? (
                                     withdrawals.map(w => (
                                         <TableRow key={w.id}>
                                             <TableCell>
                                                 <p className="font-medium">${w.amount.toFixed(2)}</p>
-                                                <p className="text-xs text-muted-foreground"><SafeDateTime date={w.created_at} locale="ar-EG" /></p>
-                                            </TableCell>
-                                            <TableCell className="text-left">
-                                                <Badge variant={w.status === 'completed' ? 'secondary' : 'outline'} className="flex items-center gap-1 w-fit">
+                                                <Badge variant={w.status === 'completed' ? 'secondary' : 'outline'} className="flex items-center gap-1 w-fit mt-1">
                                                     {w.status === 'completed' ? <CheckCircle className="h-3 w-3 text-green-500" /> : <Clock className="h-3 w-3"/>}
                                                     {w.status === 'pending' ? 'قيد الانتظار' : 'مكتمل'}
                                                 </Badge>
                                             </TableCell>
+                                            <TableCell className="text-left text-xs text-muted-foreground">
+                                                <SafeDateTime date={w.created_at} locale="ar-EG" />
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
-                                    <TableRow><TableCell className="text-center text-muted-foreground py-6">لا توجد طلبات سحب</TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-6">لا توجد طلبات سحب</TableCell></TableRow>
                                 )}
                             </TableBody>
                         </Table>
