@@ -23,9 +23,9 @@ const parseAssistantResponse = (text: string) => {
     if (match) {
         const mainText = text.replace(regex, '').trim();
         const linkUrl = match[1];
-        const linkTextMatch = mainText.match(/the (.*?) page\?/);
+        const linkTextMatch = mainText.match(/the (.*?) page\?/i) ?? mainText.match(/to the (.*?) page\?/i);
         const linkText = linkTextMatch ? linkTextMatch[1] : 'Go to Page';
-        return { mainText, link: { url: linkUrl, text: linkText } };
+        return { mainText, link: { url: linkUrl, text: `Go to ${linkText}` } };
     }
     return { mainText: text, link: null };
 };
@@ -47,13 +47,8 @@ export function ChatAssistant() {
   
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setIsLoading(true);
       const initialMessage: Message = {role: 'assistant', content: "Hello! I'm your Hagaaty AI assistant. How can I help you today? You can ask me about the website's features or how to navigate it."};
-      // Prevent adding another initial message if one already exists.
-      if (messages.length === 0) {
-          setMessages([initialMessage]);
-      }
-      setIsLoading(false);
+      setMessages([initialMessage]);
     }
   }, [isOpen, messages.length]);
 
@@ -69,22 +64,23 @@ export function ChatAssistant() {
     setIsLoading(true);
 
     try {
-      const history = [...messages, userMessage]; 
+      const history = messages.filter(m => m.role === 'user' || m.role === 'assistant').map(m => ({role: m.role, content: m.content}));
 
       const result = await assistUser({
         query: trimmedInput,
-        history: history.filter(m => m.role === 'user' || m.role === 'assistant').map(m => ({role: m.role, content: m.content})),
+        history: history,
       });
       
       const assistantMessage: Message = { role: 'assistant', content: result.response };
       setMessages((prev) => [...prev, assistantMessage]);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI assistant error:', error);
-      const errorMessage: Message = { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' };
+      const errorMessageContent = error.message || 'Sorry, I encountered an error. Please try again.';
+      const errorMessage: Message = { role: 'assistant', content: errorMessageContent };
       setMessages((prev) => [...prev, errorMessage]);
       toast.error('Assistant Error', {
-        description: 'Sorry, I encountered an error. Please try again.',
+        description: errorMessageContent,
       });
     } finally {
       setIsLoading(false);

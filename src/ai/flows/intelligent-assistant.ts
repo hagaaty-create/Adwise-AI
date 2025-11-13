@@ -4,6 +4,12 @@
  *
  * - assistUser - A function that handles user queries.
  * - AssistUserInput - The input type for the assistUser function.
+ * 'use server';
+/**
+ * @fileOverview An intelligent assistant for website accessibility and user support.
+ *
+ * - assistUser - A function that handles user queries.
+ * - AssistUserInput - The input type for the assistUser function.
  * - AssistUserOutput - The return type for the assistUser function.
  */
 
@@ -32,15 +38,9 @@ const AssistUserOutputSchema = z.object({
 export type AssistUserOutput = z.infer<typeof AssistUserOutputSchema>;
 
 export async function assistUser(input: AssistUserInput): Promise<AssistUserOutput> {
-  try {
-    return await intelligentAssistantFlow(input);
-  } catch (error) {
-    console.error(`Intelligent assistant failed: ${error instanceof Error ? error.message : String(error)}`);
-    // Fallback to a helpful mock response on any error
-    return {
-      response: "I'm currently unable to connect to my AI brain. However, I can still help! You can find ad creation under 'Create Ad', and manage your funds in the 'Financials' section.",
-    };
-  }
+  // We are calling the flow directly to ensure any errors are propagated to the client.
+  // This helps in debugging issues like a missing API key.
+  return await intelligentAssistantFlow(input);
 }
 
 // System instruction for the assistant
@@ -94,7 +94,7 @@ const intelligentAssistantFlow = ai.defineFlow(
     if (!process.env.GEMINI_API_KEY) {
       throw new GenkitError({
         status: 'UNAUTHENTICATED',
-        message: 'The GEMINI_API_KEY environment variable is not set.',
+        message: 'The GEMINI_API_KEY environment variable is not set. Please add it to your Vercel project settings.',
       });
     }
 
