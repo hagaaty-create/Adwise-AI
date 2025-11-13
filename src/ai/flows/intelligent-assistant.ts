@@ -88,15 +88,15 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
     }
 
-    const formattedHistory = (history || []).flatMap(msg => [
-        { role: msg.role === 'assistant' ? 'model' as const : 'user' as const},
-        { text: msg.content || '' },
-    ]);
+    const formattedHistory = (history || []).map(msg => ({
+      role: msg.role === 'user' ? 'user' : ('model' as const),
+      parts: [{ text: msg.content }],
+    }));
 
     try {
       const result = await assistantPrompt({
         prompt: query,
-        history: formattedHistory.map(h => ({ role: h.role, parts: [{text: h.text}] })),
+        history: formattedHistory,
       });
 
       const response = result.text;
