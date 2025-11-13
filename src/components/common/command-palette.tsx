@@ -13,6 +13,7 @@ import {
   UploadCloud,
   Terminal,
   BarChart,
+  Shield,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -41,10 +42,13 @@ const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/dashboard/create-ad', icon: Megaphone, label: 'Create Ad' },
     { href: '/dashboard/create-ad', icon: BarChart, label: 'My Campaigns' },
-    { href: '/dashboard/site-management', icon: BrainCircuit, label: 'Site AI' },
-    { href: '/dashboard/create-ad', icon: Bot, label: 'Marketing AI' },
     { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
     { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
+];
+
+const adminNavItems = [
+    { href: '/dashboard/admin', icon: Shield, label: 'Admin Panel' },
+    { href: '/dashboard/admin/site-marketing', icon: BrainCircuit, label: 'Site Marketing' },
 ];
 
 const gitCommands = `git add .
@@ -113,6 +117,21 @@ export function CommandPalette() {
                 <item.icon className="mr-2 h-4 w-4" />
                 {item.label}
               </CommandItem>
+            ))}
+          </CommandGroup>
+           <CommandSeparator />
+          <CommandGroup heading="Admin">
+            {adminNavItems.map((item) => (
+                <CommandItem
+                key={item.href}
+                value={`Admin ${item.label}`}
+                onSelect={() => {
+                    runCommand(() => router.push(item.href));
+                }}
+                >
+                <item.icon className="mr-2 h-4 w-4" />
+                {item.label}
+                </CommandItem>
             ))}
           </CommandGroup>
           <CommandSeparator />
