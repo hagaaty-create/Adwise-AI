@@ -73,7 +73,7 @@ const automatedSiteManagementFlow = ai.defineFlow(
       throw new GenkitError({
         status: 'UNAUTHENTICATED',
         message:
-          'GEMINI_API_KEY is not set. Please set it in your .env file.',
+          'The GEMINI_API_KEY environment variable is not set.',
       });
     }
 
@@ -81,7 +81,7 @@ const automatedSiteManagementFlow = ai.defineFlow(
     if (!output) {
       throw new GenkitError({
         status: 'UNAVAILABLE',
-        message: 'The AI model did not return a response. This could be due to a billing issue or an invalid API key.',
+        message: 'The AI model did not return a response. This may be due to an invalid API key, a billing issue, or a network problem.',
       });
     }
     return output;
