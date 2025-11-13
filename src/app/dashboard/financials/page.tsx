@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Wallet, Gift, Copy, Loader2, AlertTriangle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { getBalance, getTransactions, addTransaction } from '@/lib/actions';
@@ -13,7 +14,8 @@ import type { Transaction } from '@/lib/db';
 
 export default function FinancialsPage() {
   const referralLink = "https://hagaaty.com/ref/user123";
-  const binancePayId = "771625769"; // The ID you provided
+  const binancePayId = "771625769";
+  const usdtAddress = "TDGLKJE5GVpH923kqR677r9xfrzVsGJP";
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +49,6 @@ export default function FinancialsPage() {
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      // Refetch data if a new transaction was posted from another tab
       if (event.key === 'newTransaction') {
         fetchFinancialData();
         sessionStorage.removeItem('newTransaction');
@@ -57,9 +58,9 @@ export default function FinancialsPage() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, message: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("تم النسخ إلى الحافظة!");
+    toast.success(message);
   };
 
   const handleTopUp = async () => {
@@ -75,24 +76,17 @@ export default function FinancialsPage() {
     });
 
     try {
-        // In a real app, you would generate a unique order ID and call Binance API.
-        // For this demo, we will simulate this process.
-        // Step 1: Simulate creating a payment link.
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API latency
-        const binancePayUrl = `https://pay.binance.com/en/checkout?id=${binancePayId}`; // Fake URL with your ID
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        const binancePayUrl = `https://pay.binance.com/en/checkout?id=${binancePayId}`; 
 
-        // Step 2: Simulate a successful payment by adding the transaction to our DB.
-        // The user ID '1c82831c-4b68-4e1a-9494-27a3c3b4a5f7' is the hardcoded ID for 'ahmed.ali@example.com'.
         const description = `Top-up via Binance: $${amount.toFixed(2)}`;
         await addTransaction('1c82831c-4b68-4e1a-9494-27a3c3b4a5f7', amount, description);
         
-        // Step 3: Inform other components and refetch data
         sessionStorage.setItem('newTransaction', 'true');
         window.dispatchEvent(new Event('storage'));
         await fetchFinancialData();
-        setTopUpAmount(''); // Reset input
+        setTopUpAmount(''); 
 
-        // Step 4: Show success and "redirect"
         toast.success('تم إنشاء طلب الدفع بنجاح!', {
             description: 'لأغراض العرض، تم تحديث رصيدك. في التطبيق الحقيقي، سيتم تحديثه بعد تأكيد الدفع.',
             action: {
@@ -118,32 +112,61 @@ export default function FinancialsPage() {
           <CardHeader>
             <CardTitle>شحن الرصيد</CardTitle>
             <CardDescription>
-              أضف أموالاً إلى حسابك عبر Binance Pay. أدخل المبلغ بالأسفل. معرف الدفع: 
-              <span 
-                className="font-mono bg-muted px-2 py-1 rounded-md mx-1 cursor-pointer"
-                onClick={() => copyToClipboard(binancePayId)}
-              >
-                {binancePayId} <Copy className="inline h-3 w-3 ml-1" />
-              </span>
+              اختر طريقة الدفع التي تناسبك لإضافة الأموال إلى حسابك.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount">المبلغ ($)</Label>
-              <Input 
-                id="amount" 
-                type="number" 
-                placeholder="50.00" 
-                value={topUpAmount}
-                onChange={(e) => setTopUpAmount(e.target.value)}
-                disabled={isProcessingPayment}
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">استمتع بخصم 20٪ على كل عملية شحن!</p>
-            <Button onClick={handleTopUp} disabled={isProcessingPayment}>
-                {isProcessingPayment ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
-                متابعة إلى Binance Pay
-            </Button>
+          <CardContent>
+            <Tabs defaultValue="binance-pay" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="binance-pay">Binance Pay</TabsTrigger>
+                <TabsTrigger value="usdt">USDT (TRC20)</TabsTrigger>
+              </TabsList>
+              <TabsContent value="binance-pay" className="pt-6">
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    أدخل المبلغ الذي تريد إضافته عبر Binance Pay. معرف الدفع: 
+                    <span 
+                      className="font-mono bg-muted px-2 py-1 rounded-md mx-1 cursor-pointer"
+                      onClick={() => copyToClipboard(binancePayId, 'تم نسخ معرف Binance Pay!')}
+                    >
+                      {binancePayId} <Copy className="inline h-3 w-3 ml-1" />
+                    </span>
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">المبلغ ($)</Label>
+                    <Input 
+                      id="amount" 
+                      type="number" 
+                      placeholder="50.00" 
+                      value={topUpAmount}
+                      onChange={(e) => setTopUpAmount(e.target.value)}
+                      disabled={isProcessingPayment}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">استمتع بخصم 20٪ على كل عملية شحن!</p>
+                  <Button onClick={handleTopUp} disabled={isProcessingPayment}>
+                      {isProcessingPayment ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
+                      متابعة إلى Binance Pay
+                  </Button>
+                </div>
+              </TabsContent>
+              <TabsContent value="usdt" className="pt-6">
+                <div className="space-y-4">
+                  <Label>عنوان إيداع USDT (شبكة TRC20)</Label>
+                  <div className="flex items-center space-x-2">
+                      <Input value={usdtAddress} readOnly dir="ltr" />
+                      <Button variant="outline" size="icon" onClick={() => copyToClipboard(usdtAddress, 'تم نسخ عنوان USDT!')}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                  </div>
+                  <AlertTriangle className="h-4 w-4 inline-block mr-2 text-amber-500" />
+                  <span className="text-xs text-muted-foreground">
+                    تنبيه: أرسل فقط USDT على شبكة TRON (TRC20) إلى هذا العنوان. إرسال أي عملة أخرى أو على شبكة مختلفة قد يؤدي إلى فقدان أموالك.
+                  </span>
+                   <p className="text-sm text-muted-foreground pt-2">بعد إتمام التحويل، يرجى التواصل مع الدعم الفني لتأكيد الإيداع وإضافة الرصيد إلى حسابك.</p>
+                </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
         <Card>
@@ -223,7 +246,7 @@ export default function FinancialsPage() {
           <CardContent className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Input value={referralLink} readOnly />
-                <Button variant="outline" size="icon" onClick={() => copyToClipboard(referralLink)}>
+                <Button variant="outline" size="icon" onClick={() => copyToClipboard(referralLink, "تم نسخ رابط الإحالة!")}>
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
