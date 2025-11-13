@@ -96,7 +96,7 @@ const intelligentAssistantFlow = ai.defineFlow(
     try {
       const result = await assistantPrompt({
         prompt: query,
-        history: formattedHistory,
+        history: formattedHistory.map(h => ({ role: h.role, parts: [{text: h.text}] })),
       });
 
       const response = result.text;
