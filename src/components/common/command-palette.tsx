@@ -48,7 +48,7 @@ const navItems = [
 ];
 
 const gitCommands = `git add .
-git commit -m "feat: Finalize app features and AI integration"
+git commit -m "feat: Stabilize and finalize AI features"
 git push origin main`;
 
 export function CommandPalette() {
