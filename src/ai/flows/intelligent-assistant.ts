@@ -84,18 +84,19 @@ const intelligentAssistantFlow = ai.defineFlow(
     }
 
     try {
-      const fullHistory = (history || []).map(msg => ({
+      const model = googleAI.model('gemini-pro');
+
+      // Correctly build the history for the model
+      const modelHistory = (history || []).map(msg => ({
         role: msg.role === 'user' ? ('user' as const) : ('model' as const),
         content: [{ text: msg.content }],
       }));
-
-      const model = googleAI.model('gemini-pro');
 
       const result = await ai.generate({
         model,
         system: systemInstruction,
         prompt: [{ role: 'user' as const, content: [{ text: query }] }],
-        history: fullHistory,
+        history: modelHistory,
       });
 
       const response = result.text;
