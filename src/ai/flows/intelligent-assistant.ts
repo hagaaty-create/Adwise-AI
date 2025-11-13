@@ -61,7 +61,7 @@ async function runMockedAssistant(input: AssistUserInput): Promise<AssistUserOut
     }
     
     // Admin Panel
-    if (query.includes('admin') || query.includes('users') || query.includes('manage') || query-includes('مسؤول')) {
+    if (query.includes('admin') || query.includes('users') || query.includes('manage') || query.includes('مسؤول')) {
         // This response assumes the check for admin role is done on the frontend or via routing.
         return { response: "The Admin Panel is for managing users, campaigns, and site content. It is restricted to administrators only. You can access it via the sidebar if you have the correct permissions. Would you like to try navigating to the Admin Panel? [Link: /dashboard/admin]" };
     }
