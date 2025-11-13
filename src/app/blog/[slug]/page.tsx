@@ -1,6 +1,5 @@
 import { getArticleBySlug, getPublishedArticles } from '@/lib/actions';
 import { notFound } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Calendar, ArrowLeft, Zap } from 'lucide-react';
@@ -9,6 +8,8 @@ import type { Metadata } from 'next';
 type Props = {
   params: { slug: string };
 };
+
+export const revalidate = 3600; // Revalidate every hour
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getArticleBySlug(params.slug);
@@ -21,15 +22,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${article.title} | Hagaaty Blog`,
-    description: article.content.substring(0, 160),
+    description: article.content.substring(0, 160).replace(/<\/?[^>]+(>|$)/g, ""), // Strip HTML for description
   };
 }
 
 export async function generateStaticParams() {
-  const articles = await getPublishedArticles();
-  return articles.map(article => ({
-    slug: article.slug,
-  }));
+  try {
+    const articles = await getPublishedArticles();
+    return articles.map(article => ({
+      slug: article.slug,
+    }));
+  } catch (error) {
+    console.error("Failed to generate static params for blog:", error);
+    return [];
+  }
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -49,6 +55,9 @@ export default async function ArticlePage({ params }: Props) {
         <nav className="flex items-center gap-4">
           <Button variant="outline" asChild>
             <Link href="/">Home</Link>
+          </Button>
+           <Button variant="ghost" asChild>
+            <Link href="/dashboard">Dashboard</Link>
           </Button>
           <Button asChild>
             <Link href="/login">Login</Link>

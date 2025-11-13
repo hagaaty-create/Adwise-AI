@@ -11,9 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2, Wand2, FileText, Key, FilePlus, Lightbulb, Copy, Code } from 'lucide-react';
+import { Loader2, Wand2, FileText, Key, FilePlus, Lightbulb, Copy, Code, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   topicFocus: z.string().optional(),
@@ -24,6 +25,7 @@ type FormData = z.infer<typeof formSchema>;
 export default function SiteMarketingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AutomatedSiteManagementOutput | null>(null);
+  const router = useRouter();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -41,7 +43,9 @@ export default function SiteMarketingPage() {
     try {
       const siteManagementResult = await automatedSiteManagement(values);
       setResult(siteManagementResult);
-      toast.success("AI has generated a new SEO plan and a complete article!");
+      toast.success("AI has generated a new SEO plan and a complete article!", {
+        description: 'The article is now a draft. Go to "Manage Articles" to publish it.'
+      });
     } catch (error) {
       console.error('Failed to get site management suggestions:', error);
       toast.error("An error occurred while generating the SEO plan.");
@@ -61,7 +65,7 @@ export default function SiteMarketingPage() {
         <CardHeader>
           <CardTitle>Autonomous Site Marketing AI</CardTitle>
           <CardDescription>
-            This is your internal SEO engine. Delegate your content strategy for the Hagaaty website to our AI. It will analyze the market, find valuable keywords, and write complete articles to make this site dominate search results. You can optionally provide a topic focus, or let the AI decide.
+            Delegate your content strategy to our AI. It will analyze the market, find valuable keywords, and write complete articles. Generated articles will appear as drafts in "Manage Articles" for you to review and publish.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -127,33 +131,22 @@ export default function SiteMarketingPage() {
           
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><FileText /> Your Generated Article</CardTitle>
-              <CardDescription>This article is SEO-optimized and ready to be published on your site.</CardDescription>
+              <div className="flex justify-between items-center">
+                 <CardTitle className="flex items-center gap-2"><FileText /> Article Draft Created</CardTitle>
+                  <Button variant="secondary" onClick={() => router.push('/dashboard/admin/articles')}>
+                    Go to Articles <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+              </div>
+              <CardDescription>This article has been saved as a draft. Review and publish it from the "Manage Articles" page.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <h2 className="text-2xl font-bold tracking-tight">{result.generatedArticle.title}</h2>
                 <Separator />
                 <div 
-                    className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{ __html: result.generatedArticle.content.replace(/\\n/g, '<br />') }}
-                />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-                <div className="flex justify-between items-center">
-                    <CardTitle className="flex items-center gap-2"><Code /> Google Sites Embed Code</CardTitle>
-                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(result.googleSitesHtml)}>
-                        <Copy className="h-4 w-4" />
-                    </Button>
+                    className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap max-h-60 overflow-y-auto p-2 border rounded-md"
+                >
+                    {result.generatedArticle.content.replace(/\\n/g, '\n')}
                 </div>
-              <CardDescription>Copy this code and paste it into an "Embed" block in your Google Site to publish the article instantly.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <pre className="p-4 bg-muted rounded-lg text-sm text-foreground overflow-x-auto">
-                    <code>{result.googleSitesHtml}</code>
-                </pre>
             </CardContent>
           </Card>
         </div>

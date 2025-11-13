@@ -174,7 +174,7 @@ export async function getAdminDashboardData() {
     await ensureDbSeeded();
     try {
         const usersQuery = sql`SELECT id, name, email, balance, status, referral_earnings FROM users ORDER BY name`;
-        const campaignsQuery = sql`SELECT * FROM campaigns ORDER BY user_name`;
+        const campaignsQuery = sql`SELECT c.id, c.user_id, u.name as user_name, c.headline, c.status FROM campaigns c JOIN users u ON c.user_id = u.id ORDER BY u.name, c.headline`;
         const withdrawalsQuery = sql`SELECT * FROM withdrawals WHERE status = 'pending' ORDER BY created_at ASC`;
 
         const [usersResult, campaignsResult, withdrawalsResult] = await Promise.all([

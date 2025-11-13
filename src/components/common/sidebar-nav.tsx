@@ -22,6 +22,7 @@ import {
   Shield,
   BarChart,
   Newspaper,
+  BookOpen
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -60,11 +61,11 @@ export function SidebarNav() {
     { href: '/dashboard/create-ad', icon: Megaphone, label: translations.sidebar.createAd },
     { href: '/dashboard/campaigns', icon: BarChart, label: translations.sidebar.myCampaigns },
     { href: '/dashboard/financials', icon: Wallet, label: translations.sidebar.financials },
+    { href: '/blog', icon: BookOpen, label: 'Blog', isPublic: true },
   ];
   
   const adminNavItems = [
       { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
-      { href: '/dashboard/admin/site-marketing', icon: BrainCircuit, label: translations.sidebar.siteMarketing },
       { href: '/dashboard/admin/articles', icon: Newspaper, label: 'Manage Articles' },
       { href: '/dashboard/subscription', icon: Briefcase, label: translations.sidebar.agency },
   ];
@@ -86,6 +87,8 @@ export function SidebarNav() {
                   asChild
                   isActive={isActive}
                   tooltip={item.label}
+                  // Public items get a regular link, dashboard items get a dashboard-style link
+                  target={item.isPublic ? '_blank' : ''}
                 >
                   <Link href={item.href}>
                     <item.icon />

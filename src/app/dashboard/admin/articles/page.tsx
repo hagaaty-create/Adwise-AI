@@ -57,9 +57,14 @@ function ArticleRow({ article, onArticleUpdate }: { article: Article, onArticleU
   return (
     <TableRow>
       <TableCell className="font-medium max-w-sm truncate">
-        <Link href={`/blog/${article.slug}`} target="_blank" className="hover:underline" title={article.title}>
-            {article.title}
-        </Link>
+        {article.status === 'published' ? (
+             <Link href={`/blog/${article.slug}`} target="_blank" className="hover:underline" title={article.title}>
+                {article.title}
+            </Link>
+        ) : (
+            <span title={article.title}>{article.title}</span>
+        )}
+       
       </TableCell>
       <TableCell>
         <Badge variant={article.status === 'published' ? 'secondary' : 'outline'} className="flex w-fit items-center gap-1">
@@ -160,7 +165,7 @@ export default function ManageArticlesPage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
-                    No articles found. Go to the "Site Marketing" page to generate one.
+                    No articles found. Go to the "Admin {'>'} Site Marketing" page to generate one.
                   </TableCell>
                 </TableRow>
               )}
