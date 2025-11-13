@@ -13,18 +13,11 @@ import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const AutomatedSiteManagementInputSchema = z.object({
-  websiteGoal: z
+  topicFocus: z
     .string()
+    .optional()
     .describe(
-      'The primary goal of the website, such as increasing user engagement or driving sales.'
-    ),
-  currentKeywords: z
-    .string()
-    .describe('A comma-separated list of the website’s current target keywords.'),
-  competitorUrls: z
-    .string()
-    .describe(
-      'A comma-separated list of competitor website URLs to analyze for SEO.'
+      'An optional topic for the AI to focus on. If left blank, the AI will decide the best topic to pursue for maximum SEO impact.'
     ),
 });
 export type AutomatedSiteManagementInput = z.infer<typeof AutomatedSiteManagementInputSchema>;
@@ -54,20 +47,17 @@ const prompt = ai.definePrompt({
   name: 'automatedSiteManagementPrompt',
   input: {schema: AutomatedSiteManagementInputSchema},
   output: {schema: AutomatedSiteManagementOutputSchema},
-  prompt: `You are an expert AI SEO strategist and content writer tasked with autonomously developing a website to improve its visibility and attract more users.
+  prompt: `You are an expert AI SEO strategist and content writer, and your sole mission is to make the "Hagaaty" website dominate search engine rankings. "Hagaaty" is an all-in-one AI-powered advertising platform.
 
-  Based on the website's goals, current keywords, and competitor analysis, your task is to:
-  1.  Suggest at least 3 new, highly relevant article topics that can rank well.
-  2.  Provide a list of new keyword suggestions to target.
-  3.  From your suggested topics, choose the SINGLE most promising topic.
-  4.  Write a complete, comprehensive, and SEO-optimized article for that chosen topic. The article must be at least 500 words long, well-structured with headings and paragraphs, and ready for publication.
-  5.  Finally, take the generated article (title and content) and format it as a single block of clean, simple HTML code. Use basic tags like <h1> for the title, <h2> for subheadings, and <p> for paragraphs. This HTML should be ready to be pasted directly into an "Embed Code" block on a Google Site.
+Your task is to act autonomously. You will perform a continuous cycle of analysis and content creation to grow the site's organic traffic.
 
-  Website Goal: {{{websiteGoal}}}
-  Current Keywords: {{{currentKeywords}}}
-  Competitor URLs: {{{competitorUrls}}}
+1.  **Analyze the Landscape:** Research current trends in AI advertising, digital marketing, and platforms like Google Ads. Identify high-potential, low-competition keywords.
+2.  **Suggest Growth Areas:** Based on your analysis, propose at least 3 new article topics that will attract our target audience (advertisers, marketers, agencies). Also suggest a list of new keywords to target.
+3.  **Choose and Execute:** From your suggested topics, choose the SINGLE most promising one. If a specific "Topic Focus" was provided ({{{topicFocus}}}), prioritize that. Otherwise, make your own decision for maximum impact.
+4.  **Write a Masterpiece:** Write a complete, comprehensive, and SEO-optimized article for your chosen topic. It must be at least 500 words, well-structured with headings, and ready for immediate publication. It should be written to establish Hagaaty as a thought leader.
+  5.  **Format for Publishing:** Take the generated article (title and content) and format it as a single block of clean, simple HTML. Use <h1> for the title, <h2> for subheadings, and <p> for paragraphs. This HTML must be ready to be pasted directly into an "Embed Code" block on a Google Site.
 
-  Your final output must be a single JSON object matching the specified format.`,
+Your final output must be a single JSON object matching the specified format.`,
 });
 
 const automatedSiteManagementFlow = ai.defineFlow(

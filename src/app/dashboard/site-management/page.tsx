@@ -11,15 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Wand2, FileText, Key, FilePlus, Lightbulb, Copy, Code } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
-  websiteGoal: z.string().min(10, { message: 'Please describe your website goal in more detail.' }),
-  currentKeywords: z.string().min(3, { message: 'Please provide at least one keyword.' }),
-  competitorUrls: z.string().min(10, { message: 'Please provide at least one competitor URL.' }),
+  topicFocus: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -31,20 +28,23 @@ export default function SiteManagementPage() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      websiteGoal: '',
-      currentKeywords: '',
-      competitorUrls: '',
+      topicFocus: '',
     },
   });
 
   async function onSubmit(values: FormData) {
     setIsLoading(true);
     setResult(null);
+    toast.info("Autonomous SEO agent activated...", {
+        description: "The AI is analyzing the market and writing a full article. This may take a minute."
+    });
     try {
       const siteManagementResult = await automatedSiteManagement(values);
       setResult(siteManagementResult);
+      toast.success("AI has generated a new SEO plan and a complete article!");
     } catch (error) {
       console.error('Failed to get site management suggestions:', error);
+      toast.error("An error occurred while generating the SEO plan.");
     } finally {
       setIsLoading(false);
     }
@@ -59,55 +59,29 @@ export default function SiteManagementPage() {
     <div className="grid gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Automated Site Management AI</CardTitle>
-          <CardDescription>Let our AI autonomously develop your website. It analyzes competitors, finds keywords, and generates complete, ready-to-publish articles to get you to the top of search results.</CardDescription>
+          <CardTitle>Autonomous Site Management AI</CardTitle>
+          <CardDescription>Delegate your content strategy to the AI. It will analyze the market, find valuable keywords, and write complete, ready-to-publish articles to make your site dominate search results. You can optionally provide a topic focus, or let the AI decide.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="websiteGoal"
+                name="topicFocus"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Primary Website Goal</FormLabel>
+                    <FormLabel>Topic Focus (Optional)</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="e.g., Increase user engagement for a new SaaS product." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="currentKeywords"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current Target Keywords</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., AI advertising, automated marketing" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="competitorUrls"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Competitor URLs</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., google.com, facebook.com" {...field} />
+                      <Input placeholder="e.g., 'Google Ads for e-commerce' or leave blank for full autonomy" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                Generate SEO Plan & Article
+                Activate Autonomous SEO Agent
               </Button>
             </form>
           </Form>
@@ -117,7 +91,7 @@ export default function SiteManagementPage() {
       {isLoading && (
         <div className="text-center p-8">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="mt-2 text-muted-foreground">AI is writing a full article for you... this may take a minute.</p>
+            <p className="mt-2 text-muted-foreground">AI is analyzing, strategizing, and writing... please wait.</p>
         </div>
       )}
 
@@ -155,7 +129,7 @@ export default function SiteManagementPage() {
                 <Separator />
                 <div 
                     className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{ __html: result.generatedArticle.content.replace(/\n/g, '<br />') }}
+                    dangerouslySetInnerHTML={{ __html: result.generatedArticle.content.replace(/\\n/g, '<br />') }}
                 />
             </CardContent>
           </Card>
