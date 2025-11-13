@@ -35,7 +35,8 @@ function WithdrawalRow({ withdrawal, onProcess }: { withdrawal: Withdrawal; onPr
       onProcess(withdrawal.id); // Notify parent to remove from list
     } catch (error: any) {
       toast.error("Failed to process withdrawal", { description: error.message });
-      setIsProcessing(false);
+    } finally {
+        setIsProcessing(false);
     }
   };
 
@@ -76,20 +77,22 @@ export default function AdminPage() {
   const [pendingWithdrawals, setPendingWithdrawals] = useState<Withdrawal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchData() {
+  const fetchData = async () => {
       setIsLoading(true);
       try {
         const data = await getAdminDashboardData();
-        setUsers(data.users as User[]);
-        setCampaigns(data.campaigns as Campaign[]);
-        setPendingWithdrawals(data.pendingWithdrawals as Withdrawal[]);
+        setUsers(data.users);
+        setCampaigns(data.campaigns);
+        setPendingWithdrawals(data.pendingWithdrawals);
       } catch (error) {
         console.error("Failed to fetch admin data:", error);
+        toast.error("Failed to load admin data.");
       } finally {
         setIsLoading(false);
       }
-    }
+    };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -156,6 +159,7 @@ export default function AdminPage() {
                 <TableHead>الاسم</TableHead>
                 <TableHead>البريد الإلكتروني</TableHead>
                 <TableHead>الرصيد</TableHead>
+                <TableHead>أرباح الإحالة</TableHead>
                 <TableHead>الحالة</TableHead>
                 <TableHead className="text-right">الإجراءات</TableHead>
               </TableRow>
@@ -166,6 +170,7 @@ export default function AdminPage() {
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>${user.balance.toFixed(2)}</TableCell>
+                  <TableCell>${user.referral_earnings.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={user.status === 'active' ? 'secondary' : 'destructive'} className="flex items-center w-fit">
                       {user.status === 'active' ? <ShieldCheck className="h-3 w-3 mr-1" /> : <Ban className="h-3 w-3 mr-1" />}

@@ -3,7 +3,7 @@
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { seed, type Transaction, type Withdrawal } from './db';
+import { seed, type Transaction, type Withdrawal, type User, type Campaign } from './db';
 import { Resend } from 'resend';
 
 // This should be in environment variables, but for demo purposes it's here.
@@ -130,7 +130,7 @@ export async function requestWithdrawal(amount: number, phoneNumber: string) {
                 html: `
                     <h1>New Withdrawal Request</h1>
                     <p><strong>User:</strong> ${user.name} (${user.email})</p>
-                    <p><strong>Amount:</strong> ${parsedAmount.toFixed(2)} EGP</p>
+                    <p><strong>Amount:</strong> ${parsedAmount.toFixed(2)}</p>
                     <p><strong>Vodafone Cash Number:</strong> ${parsedPhoneNumber}</p>
                     <p>Please process this request and mark it as completed in the admin panel.</p>
                 `,
@@ -153,11 +153,14 @@ export async function processWithdrawal(withdrawalId: string) {
     await ensureDbSeeded();
     const parsedId = z.string().uuid().parse(withdrawalId);
     try {
-        await sql`
+        const result = await sql`
             UPDATE withdrawals
             SET status = 'completed', updated_at = CURRENT_TIMESTAMP
             WHERE id = ${parsedId} AND status = 'pending'
         `;
+        if (result.rowCount === 0) {
+            throw new Error("Withdrawal not found or already processed.");
+        }
         revalidatePath('/dashboard/admin');
         revalidatePath('/dashboard/financials');
     } catch (error) {
@@ -170,7 +173,7 @@ export async function processWithdrawal(withdrawalId: string) {
 export async function getAdminDashboardData() {
     await ensureDbSeeded();
     try {
-        const usersQuery = sql`SELECT * FROM users ORDER BY name`;
+        const usersQuery = sql`SELECT id, name, email, balance, status, referral_earnings FROM users ORDER BY name`;
         const campaignsQuery = sql`SELECT * FROM campaigns ORDER BY user_name`;
         const withdrawalsQuery = sql`SELECT * FROM withdrawals WHERE status = 'pending' ORDER BY created_at ASC`;
 
@@ -181,8 +184,8 @@ export async function getAdminDashboardData() {
         ]);
         
         return {
-            users: usersResult.rows,
-            campaigns: campaignsResult.rows,
+            users: usersResult.rows as User[],
+            campaigns: campaignsResult.rows as Campaign[],
             pendingWithdrawals: withdrawalsResult.rows as Withdrawal[],
         };
     } catch (error) {
@@ -195,7 +198,7 @@ export async function getAdminDashboardData() {
 export async function getUsers() {
   await ensureDbSeeded();
   try {
-    const { rows } = await sql`SELECT * FROM users`;
+    const { rows } = await sql`SELECT id, name, email, balance, status, referral_earnings FROM users`;
     return rows;
   } catch (error) {
     console.error('Failed to fetch users:', error);

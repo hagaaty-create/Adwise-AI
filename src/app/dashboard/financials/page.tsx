@@ -113,6 +113,11 @@ export default function FinancialsPage() {
           toast.error("الرجاء إدخال رقم فودافون كاش.");
           return;
       }
+       if (amount > referralEarnings) {
+        toast.error("مبلغ السحب لا يمكن أن يتجاوز رصيد أرباحك.");
+        return;
+      }
+
 
       setIsRequestingWithdrawal(true);
       try {
@@ -174,7 +179,7 @@ export default function FinancialsPage() {
                                             <TableCell className="text-left">
                                                 <Badge variant={w.status === 'completed' ? 'secondary' : 'outline'} className="flex items-center gap-1 w-fit">
                                                     {w.status === 'completed' ? <CheckCircle className="h-3 w-3 text-green-500" /> : <Clock className="h-3 w-3"/>}
-                                                    {w.status}
+                                                    {w.status === 'pending' ? 'قيد الانتظار' : 'مكتمل'}
                                                 </Badge>
                                             </TableCell>
                                         </TableRow>
@@ -200,7 +205,7 @@ export default function FinancialsPage() {
                      </div>
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button className="w-full" disabled={isRequestingWithdrawal || !withdrawalAmount || !withdrawalPhone || parseFloat(withdrawalAmount) > referralEarnings}>
+                            <Button className="w-full" disabled={isRequestingWithdrawal || !withdrawalAmount || !withdrawalPhone || parseFloat(withdrawalAmount || '0') > referralEarnings}>
                                 {isRequestingWithdrawal ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
                                 إرسال طلب السحب
                             </Button>

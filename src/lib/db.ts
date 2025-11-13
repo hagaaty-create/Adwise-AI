@@ -5,6 +5,7 @@ export type User = {
     name: string;
     email: string;
     balance: number;
+    referral_earnings: number;
     status: 'active' | 'suspended';
 };
 
@@ -68,7 +69,8 @@ export async function seed() {
         ON CONFLICT (email) DO UPDATE SET 
             name = EXCLUDED.name,
             status = EXCLUDED.status,
-            referral_earnings = 25.00;
+            referral_earnings = 25.00,
+            balance = 4.00;
     `;
     console.log(`Seeded admin user`);
 
