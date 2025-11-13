@@ -42,7 +42,7 @@ const navItems = [
     { href: '/dashboard/create-ad', icon: Megaphone, label: 'Create Ad' },
     { href: '/dashboard/review-ad', icon: CheckCircle, label: 'Review Ad' },
     { href: '/dashboard/site-management', icon: BrainCircuit, label: 'Site AI' },
-    { href: '/dashboard/marketing', icon: Bot, label: 'Marketing AI' },
+    { href: '/dashboard/create-ad', icon: Bot, label: 'Marketing AI' },
     { href: '/dashboard/financials', icon: Wallet, label: 'Financials' },
     { href: '/dashboard/subscription', icon: Briefcase, label: 'Agency' },
 ];
@@ -104,7 +104,7 @@ export function CommandPalette() {
           <CommandGroup heading="Navigation">
             {navItems.map((item) => (
               <CommandItem
-                key={item.href}
+                key={item.href + item.label}
                 value={item.label}
                 onSelect={() => {
                   runCommand(() => router.push(item.href));
