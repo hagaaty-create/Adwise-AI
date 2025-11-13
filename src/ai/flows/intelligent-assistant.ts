@@ -8,6 +8,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { GenkitError } from 'genkit';
 
@@ -68,12 +69,6 @@ const systemInstruction = `You are "Hagaaty AI Assistant", a friendly, expert AI
 - Keep answers concise and to the point.
 - When asked about your identity, introduce yourself as the "Hagaaty AI Assistant".`;
 
-const assistantPrompt = ai.definePrompt({
-  name: 'hagaatyAssistantPrompt',
-  model: 'googleai/gemini-pro',
-  system: systemInstruction,
-});
-
 const intelligentAssistantFlow = ai.defineFlow(
   {
     name: 'intelligentAssistantFlow',
@@ -88,18 +83,18 @@ const intelligentAssistantFlow = ai.defineFlow(
       });
     }
 
-    // Convert the provided history to the format expected by the model.
-    const messages = (history || []).map(msg => ({
-        role: msg.role === 'user' ? 'user' : ('model' as const),
-        parts: [{ text: msg.content }],
-    }));
-
     try {
-      // Pass the preceding history and the new query (as prompt) to the model.
-      const result = await assistantPrompt({
-        prompt: query,
-        history: messages,
+      const model = googleAI.chat({
+        model: 'gemini-pro',
+        system: systemInstruction,
       });
+
+      const conversationHistory = (history || []).map(msg => ({
+        role: msg.role === 'user' ? ('user' as const) : ('model' as const),
+        parts: [{ text: msg.content }],
+      }));
+
+      const result = await model.sendMessage(query, { history: conversationHistory });
 
       const response = result.text;
 
