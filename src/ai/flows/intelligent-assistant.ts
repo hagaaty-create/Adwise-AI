@@ -86,8 +86,9 @@ const intelligentAssistantFlow = ai.defineFlow(
     try {
       const model = googleAI.model('gemini-pro');
 
-      // Correctly build the history for the model
-      const modelHistory = (history || []).map(msg => ({
+      // Correctly build the history for the model.
+      // The model expects a specific format for conversational history.
+      const historyForModel = (history || []).map(msg => ({
         role: msg.role === 'user' ? ('user' as const) : ('model' as const),
         content: [{ text: msg.content }],
       }));
@@ -96,9 +97,9 @@ const intelligentAssistantFlow = ai.defineFlow(
         model,
         system: systemInstruction,
         prompt: [{ role: 'user' as const, content: [{ text: query }] }],
-        history: modelHistory,
+        history: historyForModel,
       });
-
+      
       const response = result.text;
 
       if (!response) {
