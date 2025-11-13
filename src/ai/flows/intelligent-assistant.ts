@@ -89,7 +89,7 @@ const intelligentAssistantFlow = ai.defineFlow(
       if (!apiKey) {
         throw new GenkitError({
             status: 'FAILED_PRECONDITION',
-            message: 'GEMINI_API_KEY is not set in the environment.',
+            message: 'GEMINI_API_KEY is not set in the environment. Please add it to your .env file.',
         });
       }
       const model = googleAI.model('gemini-pro', { apiKey });
@@ -119,7 +119,7 @@ const intelligentAssistantFlow = ai.defineFlow(
 
       const friendlyMessage = 
         'Sorry, I seem to be having trouble connecting to my brain right now. ' +
-        'This is likely due to an issue with the Google AI API configuration. ' +
+        'This is likely an issue with the Google AI API configuration. ' +
         'Please check that the `GEMINI_API_KEY` is set correctly in your .env file and that the associated Google Cloud project has billing and the "Generative Language API" enabled.';
 
       throw new GenkitError({
