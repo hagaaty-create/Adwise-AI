@@ -6,76 +6,66 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Wallet, Gift, Copy, Loader2 } from 'lucide-react';
+import { Wallet, Gift, Copy, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { sql } from '@vercel/postgres'; // We can't use this here directly
-
-// This is a client component, we need an API route or server action to fetch DB data
-async function fetchUserBalanceAndTransactions() {
-  // In a real app, this would be an API call to a backend endpoint
-  // that gets the user from a session and queries the DB.
-  // For this prototype, we'll simulate fetching for our main user.
-  // This is a simplified approach for demonstration.
-  // In a production app, you would have a proper API route.
-  
-  // For now, we will use a server action that we call inside useEffect
-  // This is not ideal but works for this prototype.
-  try {
-    const res = await fetch('/api/get-balance');
-    if (!res.ok) {
-      throw new Error('Failed to fetch data');
-    }
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch balance:", error);
-    // Return initial balance and transaction if DB fails
-    return { balance: 4.00, transactions: initialTransactionsData };
-  }
-}
 
 const initialTransactionsData = [
-  { id: 'trx-001', date: new Date().toISOString().split('T')[0], description: 'Welcome Bonus', amount: 4.00, type: 'credit' },
+  { id: 'trx-001', date: new Date().toISOString().split('T')[0], description: 'Welcome Bonus', amount: 4.00, type: 'credit' as const },
 ];
+
+type Transaction = typeof initialTransactionsData[0];
 
 export default function FinancialsPage() {
   const referralLink = "https://hagaaty.com/ref/user123";
   const [balance, setBalance] = useState<number | null>(null);
-  const [transactions, setTransactions] = useState(initialTransactionsData);
+  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactionsData);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  const processSessionTransaction = (currentBalance: number | null, currentTransactions: Transaction[]): { newBalance: number | null, newTransactions: Transaction[] } => {
+      const newTransactionStr = sessionStorage.getItem('newTransaction');
+      if (newTransactionStr) {
+          const newTransaction: Transaction = JSON.parse(newTransactionStr);
+          if (!currentTransactions.some(t => t.id === newTransaction.id)) {
+              const updatedTransactions = [...currentTransactions, newTransaction];
+              const updatedBalance = currentBalance !== null ? currentBalance + newTransaction.amount : newTransaction.amount;
+              sessionStorage.removeItem('newTransaction');
+              return { newBalance: updatedBalance, newTransactions: updatedTransactions };
+          }
+      }
+      return { newBalance: currentBalance, newTransactions: currentTransactions };
+  };
+  
   useEffect(() => {
     async function loadData() {
-      // In a real app, you'd get the user from an auth session
-      const userId = 'ahmed.ali@example.com';
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        // Use a client-side fetch to a hypothetical API route
-        // This is a common pattern for fetching data in client components
-        // For simplicity, we are assuming a server action can be called this way
-        // In a real app this would be an API route in `app/api`
-        const response = await fetch(`/api/user-financials?email=${userId}`);
-        const data = await response.json();
-        setBalance(data.balance);
-      } catch (error) {
-        console.error("Failed to fetch financials:", error);
-        setBalance(4.00); // fallback
-      } finally {
-        // Check for new transaction from ad creation
-        const newTransactionStr = sessionStorage.getItem('newTransaction');
-        if (newTransactionStr) {
-          const newTransaction = JSON.parse(newTransactionStr);
-          // Check if transaction already exists
-          if (!transactions.some(t => t.id === newTransaction.id)) {
-            setTransactions(prev => [...prev, newTransaction]);
-            setBalance(prev => (prev !== null ? prev + newTransaction.amount : newTransaction.amount));
-            sessionStorage.removeItem('newTransaction');
-          }
+        const response = await fetch(`/api/user-financials?email=ahmed.ali@example.com`);
+        if (!response.ok) {
+          throw new Error('Failed to connect to the database. Please check configuration.');
         }
+        const data = await response.json();
+        
+        const { newBalance, newTransactions } = processSessionTransaction(data.balance, transactions);
+        setBalance(newBalance);
+        setTransactions(newTransactions);
+
+      } catch (e: any) {
+        console.error("Failed to fetch financials:", e);
+        setError(e.message || "An unknown error occurred while fetching data.");
+        // Even if DB fails, check session storage for pending transactions
+        const { newBalance, newTransactions } = processSessionTransaction(4.00, initialTransactionsData); // Start with default balance
+        setBalance(newBalance);
+        setTransactions(newTransactions);
+
+      } finally {
         setIsLoading(false);
       }
     }
     loadData();
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
@@ -87,6 +77,19 @@ export default function FinancialsPage() {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 grid gap-6">
+        {error && (
+            <Card className="border-destructive">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-destructive">
+                        <AlertTriangle /> Database Connection Error
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-destructive-foreground">{error}</p>
+                    <p className="text-sm text-muted-foreground mt-2">Please ensure the PostgreSQL database is correctly configured in your Vercel project settings.</p>
+                </CardContent>
+            </Card>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Top Up Balance</CardTitle>
@@ -191,6 +194,7 @@ async function handler(req: Request) {
     }
 
     try {
+        const { sql } = await import('@vercel/postgres');
         const { rows } = await sql`SELECT balance FROM users WHERE email = ${email}`;
         if (rows.length > 0) {
             return new Response(JSON.stringify({ balance: parseFloat(rows[0].balance) }), { status: 200 });
