@@ -2,8 +2,7 @@ import { getPublishedArticles } from '@/lib/actions';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Calendar, ArrowRight, BookOpen } from 'lucide-react';
-import { Zap } from 'lucide-react';
+import { Calendar, ArrowRight, BookOpen, Zap } from 'lucide-react';
 
 export const revalidate = 3600; // Revalidate every hour
 

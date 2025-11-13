@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getArticles, publishArticle, deleteArticle } from '@/lib/actions';
 import type { Article } from '@/lib/db';
-import { Loader2, Newspaper, CheckCircle, Edit, Trash2, Globe, Copy, XCircle } from 'lucide-react';
+import { Loader2, Newspaper, CheckCircle, Edit, Trash2, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import {

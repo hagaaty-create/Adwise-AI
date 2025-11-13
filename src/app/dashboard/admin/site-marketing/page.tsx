@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2, Wand2, FileText, Key, FilePlus, Lightbulb, Copy, Code, ArrowRight } from 'lucide-react';
+import { Loader2, Wand2, FileText, Key, FilePlus, Lightbulb, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
@@ -53,11 +53,6 @@ export default function SiteMarketingPage() {
       setIsLoading(false);
     }
   }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("HTML code copied to clipboard!");
-  };
 
   return (
     <div className="grid gap-6">

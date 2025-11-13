@@ -14,15 +14,14 @@ import {
 import {
   LayoutDashboard,
   Megaphone,
-  BrainCircuit,
-  Wallet,
   Briefcase,
   Settings,
   LifeBuoy,
   Shield,
   BarChart,
   Newspaper,
-  BookOpen
+  BookOpen,
+  Wallet
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -67,7 +66,7 @@ export function SidebarNav() {
   const adminNavItems = [
       { href: '/dashboard/admin', icon: Shield, label: translations.sidebar.adminPanel },
       { href: '/dashboard/admin/articles', icon: Newspaper, label: 'Manage Articles' },
-      { href: '/dashboard/subscription', icon: Briefcase, label: translations.sidebar.agency },
+      { href: '/dashboard/admin/site-marketing', icon: Briefcase, label: translations.sidebar.siteMarketing },
   ];
 
   return (

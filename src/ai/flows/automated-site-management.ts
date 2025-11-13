@@ -33,9 +33,9 @@ const AutomatedSiteManagementOutputSchema = z.object({
     .describe('A list of new keyword suggestions based on competitor analysis.'),
   generatedArticle: z.object({
     title: z.string().describe('The compelling, SEO-optimized title for the generated article.'),
-    content: z.string().describe('The full, well-structured, and SEO-optimized article content, with a minimum of 500 words.'),
+    content: z.string().describe('The full, well-structured, and SEO-optimized article content, with a minimum of 500 words, formatted in Markdown.'),
   }).describe('A complete, ready-to-publish article generated for the best suggested topic.'),
-  googleSitesHtml: z.string().describe('The full article content formatted as simple, clean HTML code, ready to be embedded in a Google Site.'),
+  googleSitesHtml: z.string().describe('The full article content formatted as simple, clean HTML code, using <h1> for the title, <h2> for subheadings, and <p> for paragraphs, ready to be embedded in a Google Site or used in the blog.'),
 });
 export type AutomatedSiteManagementOutput = z.infer<typeof AutomatedSiteManagementOutputSchema>;
 
@@ -57,8 +57,8 @@ Your task is to act autonomously. You will perform a continuous cycle of analysi
 1.  **Analyze the Landscape:** Research current trends in AI advertising, digital marketing, and platforms like Google Ads. Identify high-potential, low-competition keywords.
 2.  **Suggest Growth Areas:** Based on your analysis, propose at least 3 new article topics that will attract our target audience (advertisers, marketers, agencies). Also suggest a list of new keywords to target.
 3.  **Choose and Execute:** From your suggested topics, choose the SINGLE most promising one. If a specific "Topic Focus" was provided ({{{topicFocus}}}), prioritize that. Otherwise, make your own decision for maximum impact.
-4.  **Write a Masterpiece:** Write a complete, comprehensive, and SEO-optimized article for your chosen topic. It must be at least 500 words, well-structured with headings, and ready for immediate publication. It should be written to establish Hagaaty as a thought leader.
-5.  **Format for Publishing:** Take the generated article (title and content) and format it as a single block of clean, simple HTML. Use <h1> for the title, <h2> for subheadings, and <p> for paragraphs. This HTML must be ready to be pasted directly into an "Embed Code" block on a Google Site.
+4.  **Write a Masterpiece:** Write a complete, comprehensive, and SEO-optimized article for your chosen topic. It must be at least 500 words and well-structured with headings and paragraphs. The content should be in plain text or Markdown, not HTML.
+5.  **Format for Publishing:** Take the generated article and format it as a single block of clean, simple HTML. Use <h1> for the title, <h2> for subheadings, and <p> for paragraphs. This HTML will be used for embedding or for the site's blog.
 
 Your final output must be a single JSON object matching the specified format.`,
 });
