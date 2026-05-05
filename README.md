@@ -1,5 +1,16 @@
-# Firebase Studio
+# 🔹 Adwise-AI
 
-This is a NextJS starter in Firebase Studio.
+نظام بسيط لتحليل إعلانات Google باستخدام الذكاء الاصطناعي.  
+المشروع لسه في بدايته، وبنشتغل عليه عشان نطلقه قريب إن شاء الله.
 
-To get started, take a look at src/app/page.tsx.
+## 🛠 التقنيات
+- TypeScript
+- Node.js
+- Express
+
+## 🚀 إزاي تشغله؟
+```bash
+git clone https://github.com/hagaaty-create/Adwise-AI
+cd Adwise-AI
+npm install
+npm run dev
